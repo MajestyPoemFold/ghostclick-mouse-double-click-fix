@@ -1,0 +1,10 @@
+* text=auto
+
+*.png binary
+*.gif binary
+*.ico binary
+
+# GitHub's language bar should describe the app, not the mockups and tooling around it.
+design/** linguist-documentation
+scripts/** linguist-vendored
+docs/** linguist-documentation

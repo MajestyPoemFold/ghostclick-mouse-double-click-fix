@@ -1,0 +1,12 @@
+:root { color-scheme: light dark; --bar: 32px; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font: 14px/1.5 system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif; display: grid; grid-template-rows: var(--bar) 1fr; }
+.titlebar { display: flex; align-items: center; justify-content: space-between; height: var(--bar); padding-left: 12px; user-select: none; }
+.title { font-size: 12px; }
+.caption { display: flex; height: 100%; }
+.caption button { width: 46px; height: 100%; border: 0; background: transparent; color: inherit; display: grid; place-items: center; }
+.caption button:hover { background: rgba(128, 128, 128, 0.18); }
+.caption #close:hover { background: #c42b1c; color: #fff; }
+.caption svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1; }
+main { padding: 32px; }

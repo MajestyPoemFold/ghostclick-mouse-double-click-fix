@@ -1,0 +1,95 @@
+/*
+ * GhostClick design tokens
+ *
+ * Concept: a strip-chart recorder (a polygraph for your mouse). The working surface is chart
+ * paper with a pale green grid; every mouse button writes with its own ink pen; ghost clicks
+ * are annotated in red ink. The window around the paper is the recorder's graphite housing.
+ *
+ * Light only, on purpose: the app is paper. There is no dark app theme. README graphics that
+ * must sit on GitHub dark get their own dark variants in design/readme/kit.html.
+ *
+ * Link order in every page:  ../assets/apple-fonts.css, ../tokens.css, app.css
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ---------- Paper ---------- */
+  --paper: #ffffff;            /* chart paper, the only pure white */
+  --paper-panel: #f4f5f3;      /* instrument panel the paper sits on */
+  --paper-sunk: #eceeeb;       /* wells, inputs, the click target */
+  --paper-edge: #dfe3df;       /* paper margins outside the grid */
+
+  /* ---------- Grid (printed on the paper) ---------- */
+  --grid-minor: #dcefe0;       /* every 1 unit (10 px) */
+  --grid-major: #a8d7b3;       /* every 5 units (50 px) */
+  --grid-label: #4f8c60;       /* scale numerals printed on paper */
+  --grid-unit: 10px;
+
+  /* ---------- Ink ---------- */
+  --ink: #15171a;              /* black pen: L, M, X1, X2, wheel, all text */
+  --ink-2: #454a50;            /* secondary text */
+  --ink-3: #737a81;            /* tertiary text, captions */
+  --ink-blue: #1f46c6;         /* blue pen: right button only */
+  --ink-red: #d3261d;          /* red pen: ghost annotations and alerts only */
+  --ink-red-wash: #fdeceb;     /* red ink bleeding into paper, behind alert text */
+  --ink-green: #1c7a43;        /* healthy verdicts */
+  --ink-amber: #9a5b00;        /* caution verdicts */
+
+  /* ---------- Housing (graphite) ---------- */
+  --graphite-950: #141518;
+  --graphite-900: #1e2023;     /* title bar, rail, recorder deck */
+  --graphite-800: #292c30;     /* hover on graphite */
+  --graphite-700: #3a3e43;     /* pressed on graphite, carriage rail */
+  --graphite-500: #6b7178;
+  --graphite-300: #a9aeb3;     /* text on graphite */
+  --graphite-100: #dadddb;     /* bright text on graphite */
+
+  /* ---------- Lines ---------- */
+  --rule: #d8dcd8;             /* hairlines between regions */
+  --rule-strong: #b7bdb8;      /* control borders */
+  --focus: #1f46c6;            /* keyboard focus ring */
+  --win-close: #c42b1c;        /* Windows close button hover, system color */
+
+  /* ---------- Type ---------- */
+  --font-ui: "SF Pro Rounded", "SF Pro", sans-serif;
+  --font-mono: "SF Mono", monospace;
+
+  --t-caps: 11px;      /* uppercase labels, letter-spacing .08em */
+  --t-meta: 12px;      /* meta lines, table captions */
+  --t-small: 13px;     /* dense UI text */
+  --t-body: 14px;      /* default UI text */
+  --t-lead: 16px;      /* emphasised lines */
+  --t-panel: 19px;     /* panel titles */
+  --t-page: 26px;      /* page titles */
+  --t-counter: 42px;   /* counters */
+  --t-hero: 72px;      /* one hero number per screen at most */
+
+  /* ---------- Space (4 px base) ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  /* ---------- Radius ---------- */
+  --r-paper: 0px;      /* paper is cut square, always */
+  --r-chip: 5px;       /* pen tags, chips */
+  --r-field: 7px;      /* inputs, wells */
+  --r-panel: 10px;     /* the few raised panels (tray flyout, dropdowns) */
+  --r-pill: 999px;     /* buttons and toggles: round like a mouse button */
+
+  /* ---------- Window chrome ---------- */
+  --titlebar-h: 32px;
+  --caption-w: 46px;
+  --rail-w: 84px;
+
+  /* ---------- Motion ---------- */
+  --paper-speed: 500;              /* px per second at 20 ms/div (10 px = 20 ms) */
+  --ease-pen: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;               /* hovers, presses */
+  --dur-toggle: 160ms;             /* toggles, segmented controls */
+  --dur-annotate: 340ms;           /* red circle drawn around a ghost */
+}

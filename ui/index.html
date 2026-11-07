@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- Windows 11 style title bar: the app draws its own (decorations: false in tauri.conf.json). -->
+  <header class="titlebar" data-tauri-drag-region>
+    <span class="title" data-tauri-drag-region>GhostClick</span>
+    <nav class="caption">
+      <button id="min" type="button" aria-label="Minimize"><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></button>
+      <button id="max" type="button" aria-label="Maximize"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9"/></svg></button>
+      <button id="close" type="button" aria-label="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10"/></svg></button>
+    </nav>
+  </header>
+  <main>
+    <h1>GhostClick</h1>
+    <p>Port the screens from <code>design/app/</code> here. They are plain HTML and CSS built on
+    <code>design/tokens.css</code>, so they move over as they are.</p>
+    <p id="info">Connecting to the Rust side...</p>
+  </main>
+  <script src="main.js"></script>
+</body>
+</html>

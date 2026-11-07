@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick Recorder</title>
+<link rel="stylesheet" href="../assets/apple-fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .rec { display: flex; flex-direction: column; }
+
+  .rec-ind { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink); margin-right: 6px; }
+  .rec-ind i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); display: block; animation: pen-blink 1.5s steps(1, end) infinite; }
+  @keyframes pen-blink { 0% { opacity: 1; } 60% { opacity: .2; } }
+  .rec-ind .mono { font-weight: 500; color: var(--ink-2); }
+
+  /* Summary row: verdict, then four counters */
+  .counters {
+    margin: 14px 32px 0;
+    display: grid; grid-template-columns: 1.55fr repeat(4, 1fr);
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  }
+  .counter { position: relative; padding: 11px 20px 12px; border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .counter:first-child { border-left: 0; padding-left: 0; }
+  .counter .v { font-size: var(--t-counter); font-weight: 500; letter-spacing: -.02em; line-height: 1.04; }
+  .counter .v small { font-size: 20px; font-weight: 500; color: var(--ink-2); margin-left: 4px; letter-spacing: 0; }
+  .counter .n { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .counter.ghost .v { color: var(--ink-red); }
+  .counter.ghost::after {
+    content: ""; position: absolute; left: 12px; right: 12px; top: 8px; bottom: 8px; border-radius: 12px;
+    border: 2px solid var(--ink-red); opacity: var(--flash, 0); pointer-events: none;
+  }
+  .verdict .vd { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .verdict .vd b { font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+  .verdict p { margin-top: 4px; font-size: 13px; color: var(--ink-2); max-width: 36ch; }
+
+  /* The recorder deck: graphite band with the paper strip running through it */
+  .deck {
+    margin-top: 14px;
+    background: var(--graphite-900);
+    display: grid; grid-template-columns: 206px 1fr; grid-template-rows: 358px 26px;
+    padding-top: 12px;
+  }
+  .deck-labels { padding: 18px 0 0 32px; display: flex; flex-direction: column; }
+  .lab { height: 50px; display: flex; align-items: center; gap: 10px; color: var(--graphite-100); }
+  .lab.ev { height: 22px; gap: 8px; }
+  .lab.ev span { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: #ff8a80; letter-spacing: .06em; width: 24px; text-align: center; }
+  .lab.ev em { font-style: normal; font-size: 11px; color: var(--graphite-300); }
+  .lab b { display: block; font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .lab em { display: block; font-style: normal; font-family: var(--font-mono); font-size: 11px; color: var(--graphite-300); }
+  .lab em .r { color: #ff8a80; }
+  .lab .pen { min-width: 28px; }
+  #strip { width: 100%; height: 358px; display: block; }
+  .deck-axis { grid-column: 2; position: relative; }
+  .deck-axis span { position: absolute; top: 5px; white-space: nowrap; transform: translateX(50%); font-family: var(--font-mono); font-size: 11px; color: var(--graphite-300); }
+  .deck-axis span.now { color: var(--graphite-100); font-weight: 600; }
+  .deck-speed { grid-column: 1; grid-row: 2; padding: 5px 0 0 32px; font-family: var(--font-mono); font-size: 11px; color: var(--graphite-300); }
+
+  /* Lower row: the click target and the ghost log */
+  .lower { flex: 1; display: grid; grid-template-columns: 1.42fr 1fr; gap: 28px; padding: 18px 32px 18px; min-height: 0; }
+  .target {
+    position: relative; border-radius: 12px; background: var(--paper-sunk);
+    box-shadow: inset 0 0 0 1px var(--rule), inset 0 2px 6px rgba(20, 24, 22, .06);
+    overflow: hidden; cursor: crosshair;
+  }
+  .target canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .target-copy { position: absolute; left: 24px; top: 22px; width: 330px; }
+  .target-copy h2 { font-size: 22px; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; text-wrap: balance; }
+  .target-copy p { margin-top: 8px; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+  .target-read { position: absolute; left: 24px; bottom: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .target-read .mono { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .target-read .mono .g { color: var(--ink-red); font-weight: 600; }
+  .target-keys { position: absolute; right: 18px; bottom: 16px; display: flex; gap: 6px; }
+  .target-keys .pen { background: transparent; }
+
+  .log { display: flex; flex-direction: column; min-width: 0; }
+  .log-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .log-head .l { display: flex; align-items: center; gap: 10px; }
+  .log-list { list-style: none; margin: 0; padding: 0; flex: 1; }
+  .log-list li {
+    display: grid; grid-template-columns: 112px 34px 70px 1fr auto; align-items: center; gap: 8px;
+    height: 29px; border-bottom: 1px dashed var(--rule); font-size: 12px;
+  }
+  .log-list .t { font-family: var(--font-mono); color: var(--ink-3); }
+  .log-list .g { font-family: var(--font-mono); font-weight: 600; color: var(--ink-red); font-size: 13px; }
+  .log-list .d { color: var(--ink-2); }
+  .log-list .spark { width: 46px; height: 16px; }
+  .log-foot { display: flex; justify-content: space-between; padding-top: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<div class="window">
+  <header class="titlebar"></header>
+  <nav class="rail" data-active="recorder" aria-label="Screens"></nav>
+  <main class="content rec">
+    <div class="pagehead">
+      <div>
+        <h1>Recorder</h1>
+        <p class="sub">HID-compliant mouse <span class="dotsep"></span> USB, 1000 Hz polling measured <span class="dotsep"></span> Test 2 of today</p>
+      </div>
+      <div class="actions">
+        <span class="rec-ind"><i></i>Recording <span class="mono">4:12 / 5:00</span></span>
+        <button class="btn" type="button" data-icon="pause">Pause paper</button>
+        <button class="btn" type="button" data-icon="mark">Mark</button>
+        <button class="btn btn-ink" type="button" data-icon="report">Export evidence</button>
+      </div>
+    </div>
+
+    <section class="counters" aria-label="Test summary">
+      <div class="counter verdict">
+        <span class="caps">Verdict</span>
+        <div class="vd"><span class="pen red">L</span><b>Left button chatters</b></div>
+        <p>37 ghost doubles in 4 min 12 s. Right, Middle, Back and Forward are clean.</p>
+      </div>
+      <div class="counter">
+        <span class="caps">Clicks</span>
+        <span class="v">1,184</span>
+        <span class="n">L 812 · R 301 · M 71</span>
+      </div>
+      <div class="counter ghost" id="ghostCounter">
+        <span class="caps">Ghost doubles</span>
+        <span class="v">37</span>
+        <span class="n">all on Left, under 20 ms</span>
+      </div>
+      <div class="counter">
+        <span class="caps">Shortest interval</span>
+        <span class="v">2.8<small>ms</small></span>
+        <span class="n">fastest real: 94 ms</span>
+      </div>
+      <div class="counter">
+        <span class="caps">Chatter rate</span>
+        <span class="v">3.1<small>%</small></span>
+        <span class="n">healthy switch: 0.0 %</span>
+      </div>
+    </section>
+
+    <section class="deck" aria-label="Strip chart, one pen per mouse button">
+      <div class="deck-labels">
+        <div class="lab ev"><span>EV</span><em>ghost marker pen</em></div>
+        <div class="lab"><span class="pen">L</span><div><b>Left</b><em>812 · <span class="r">37 ghosts</span></em></div></div>
+        <div class="lab"><span class="pen blue">R</span><div><b>Right</b><em>301 · 0 ghosts</em></div></div>
+        <div class="lab"><span class="pen">M</span><div><b>Middle</b><em>71 · 0 ghosts</em></div></div>
+        <div class="lab"><span class="pen">X1</span><div><b>Back</b><em>12 · 0 ghosts</em></div></div>
+        <div class="lab"><span class="pen">X2</span><div><b>Forward</b><em>0 · not pressed</em></div></div>
+        <div class="lab"><span class="pen">W</span><div><b>Wheel</b><em>164 notches</em></div></div>
+      </div>
+      <canvas id="strip"></canvas>
+      <div class="deck-speed">20 ms / div</div>
+      <div class="deck-axis" aria-hidden="true">
+        <span style="right:calc(150px + 1000px)">−2.0 s</span>
+        <span style="right:calc(150px + 750px)">−1.5 s</span>
+        <span style="right:calc(150px + 500px)">−1.0 s</span>
+        <span style="right:calc(150px + 250px)">−0.5 s</span>
+        <span class="now" style="right:150px">now</span>
+      </div>
+    </section>
+
+    <section class="lower">
+      <div class="target" id="target" tabindex="0" aria-label="Click target">
+        <canvas id="pad"></canvas>
+        <div class="target-copy">
+          <h2>Click here at your normal pace</h2>
+          <p>Every press is written on the paper. Use each button you want to test, and scroll the wheel too.</p>
+        </div>
+        <div class="target-read">
+          <span class="caps">Last click</span>
+          <span class="mono" id="lastClick">L · 412 ms after the previous click</span>
+        </div>
+        <div class="target-keys" aria-hidden="true"><span class="pen">L</span><span class="pen blue">R</span><span class="pen">M</span><span class="pen">X1</span><span class="pen">X2</span><span class="pen">W</span></div>
+      </div>
+
+      <div class="log">
+        <div class="log-head">
+          <div class="l"><h2 class="panel-title">Ghost log</h2><span class="chip red"><i></i>37 events</span></div>
+          <a class="btn btn-sm btn-quiet" href="histogram.html">Open intervals</a>
+        </div>
+        <ol class="log-list" id="log"></ol>
+        <div class="log-foot"><span>shortest 2.8 ms · median 7.4 ms</span><span>all after a release</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const GC = window.GC;
+
+  /* ---------- Sample session (one 6 s period, repeated) ---------- */
+  const P = 6;                 // loop period, seconds
+  const V = 500;               // paper speed px/s (10 px = 20 ms)
+  const PEN_FROM_RIGHT = 150;  // pen line distance from the canvas right edge
+  const CH = [
+    { id: 'L', ink: 'ink', presses: [[0.15, 0.24], [0.62, 0.70], [1.18, 1.265], [1.33, 1.41], [1.86, 1.95],
+        [2.20, 2.29], [2.301, 2.3035, 11], [2.78, 2.865], [3.50, 3.585], [3.591, 3.5935, 6], [4.05, 4.14],
+        [4.62, 4.71], [5.30, 5.39], [5.75, 5.83]] },
+    { id: 'R', ink: 'blue', presses: [[0.95, 1.07], [3.18, 3.30], [5.02, 5.13]] },
+    { id: 'M', ink: 'ink', presses: [[2.98, 3.07]] },
+    { id: 'X1', ink: 'ink', presses: [[5.55, 5.63]] },
+    { id: 'X2', ink: 'ink', presses: [] },
+    { id: 'W', ink: 'ink', notches: [[2.42, 1], [2.47, 1], [2.52, 1], [2.57, 1], [2.62, 1], [4.30, -1], [4.35, -1], [4.40, -1]] },
+  ];
+  const GHOSTS = [];
+  CH[0].presses.forEach((p) => { if (p[2]) GHOSTS.push({ t: p[0], ms: p[2], seed: Math.round(p[0] * 1000) }); });
+
+  // Click positions on the target for every real press, seeded
+  const rnd = GC.prng(20261107);
+  const CLICKS = [];
+  CH.slice(0, 4).forEach((c) => c.presses.forEach((p) => CLICKS.push({ t: p[0], ch: c.id, ghost: !!p[2] })));
+  CLICKS.sort((a, b) => a.t - b.t);
+  let last = null;
+  CLICKS.forEach((c) => {
+    if (c.ghost && last) { c.x = last.x; c.y = last.y; }
+    else { c.x = 0.52 + rnd() * 0.36; c.y = 0.18 + rnd() * 0.64; }
+    last = c;
+  });
+
+  // Sample ghost log rows
+  const LOG = [
+    ['14:06:21.418', '6.1 ms', 'after release'],
+    ['14:06:20.128', '11.0 ms', 'after release'],
+    ['14:05:58.902', '7.4 ms', 'after release'],
+    ['14:05:40.776', '2.8 ms', 'after release'],
+    ['14:05:12.330', '9.4 ms', 'after release'],
+  ];
+  const logEl = document.getElementById('log');
+  logEl.innerHTML = LOG.map(([t, g, d], i) =>
+    `<li><span class="t">${t}</span><span class="pen red">L</span><span class="g">${g}</span><span class="d">${d}</span>` +
+    `<svg class="spark" viewBox="0 0 46 16" aria-hidden="true"><path d="M0 13h8V3h16v10h${2 + i}V3h1.4v10H46" fill="none" stroke="#15171a" stroke-width="1.3"/>` +
+    `<circle cx="${25.5 + i}" cy="8" r="5.6" fill="none" stroke="#d3261d" stroke-width="1.2"/></svg></li>`).join('');
+
+  /* ---------- Canvas setup ---------- */
+  let T, S, PAD;
+  function setup() {
+    T = GC.tok();
+    S = GC.canvas(document.getElementById('strip'));
+    PAD = GC.canvas(document.getElementById('pad'));
+  }
+
+  const ROW0 = 40, ROWH = 50, PERF = 18;
+  const mod = (a, n) => ((a % n) + n) % n;
+
+  function drawStrip(t) {
+    const { ctx, w, h } = S;
+    const xPen = w - PEN_FROM_RIGHT;
+    const off = mod(t, P) * V;            // paper travel, px (wraps at 3000, a multiple of 50)
+    const X = (tau) => xPen - (t - tau) * V;
+    ctx.clearRect(0, 0, w, h);
+    // paper
+    GC.perf(ctx, 0, 0, w, PERF, { offset: off, tok: T, line: 'bottom' });
+    GC.grid(ctx, 0, PERF, w, h - PERF * 2, { offset: off, tok: T, originY: PERF });
+    GC.perf(ctx, 0, h - PERF, w, PERF, { offset: off, tok: T, line: 'top' });
+
+    const span = xPen / V + 0.2;
+    const kFrom = Math.floor((t - span) / P) - 1, kTo = Math.floor(t / P) + 1;
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, PERF, xPen + 0.5, h - PERF * 2); ctx.clip();
+
+    // event marker pen: red ticks at every ghost
+    ctx.strokeStyle = T.red; ctx.lineWidth = 2;
+    for (let k = kFrom; k <= kTo; k++) GHOSTS.forEach((g) => {
+      const tau = g.t + k * P; if (tau > t) return;
+      const x = X(tau); ctx.beginPath(); ctx.moveTo(GC.snap(x), PERF + 5); ctx.lineTo(GC.snap(x), PERF + 17); ctx.stroke();
+    });
+
+    // channels
+    CH.forEach((c, i) => {
+      const top = ROW0 + i * ROWH;
+      const hi = top + 13, lo = top + 39, mid = top + 26;
+      ctx.strokeStyle = T[c.ink]; ctx.lineWidth = 1.8; ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
+      ctx.beginPath();
+      if (c.notches) {
+        ctx.moveTo(0, mid);
+        for (let k = kFrom; k <= kTo; k++) c.notches.forEach(([n, dir]) => {
+          const tau = n + k * P; if (tau > t || X(tau) < -10) return;
+          const x = X(tau);
+          ctx.lineTo(x - 2.5, mid); ctx.lineTo(x, mid + dir * 13); ctx.lineTo(x + 2.5, mid);
+        });
+        ctx.lineTo(xPen, mid);
+      } else {
+        ctx.moveTo(0, lo);
+        for (let k = kFrom; k <= kTo; k++) c.presses.forEach(([d, u]) => {
+          const td = d + k * P, tu = u + k * P;
+          if (td > t || X(tu) < -10) return;
+          const xd = X(td), xu = X(Math.min(tu, t));
+          ctx.lineTo(xd, lo); ctx.lineTo(xd, hi); ctx.lineTo(xu, hi);
+          if (tu <= t) ctx.lineTo(xu, lo);
+        });
+        const pressed = isPressed(c, t);
+        ctx.lineTo(xPen, pressed ? hi : lo);
+      }
+      ctx.stroke();
+    });
+
+    // red ink annotations around ghosts
+    for (let k = kFrom; k <= kTo; k++) GHOSTS.forEach((g) => {
+      const tau = g.t + k * P; const dt = t - tau; if (dt < 0) return;
+      const x = X(tau) + 0.6, cy = ROW0 + 26;
+      if (x < -40) return;
+      const pc = GC.easeOut(GC.seg(dt, 0.08, 0.40));
+      GC.inkCircle(ctx, x, cy, 12, 21, pc, g.seed, T.red, 2);
+      const pl = GC.seg(dt, 0.36, 0.52);
+      if (pl > 0) {
+        ctx.save(); ctx.globalAlpha = pl;
+        ctx.strokeStyle = T.red; ctx.lineWidth = 1.3; ctx.beginPath();
+        ctx.moveTo(x + 10, cy - 15); ctx.lineTo(x + 22, cy - 22); ctx.lineTo(x + 28, cy - 22); ctx.stroke();
+        ctx.restore();
+        GC.label(ctx, `${g.ms} ms, ghost`, x + 31, cy - 22, { color: T.red, alpha: pl, font: '600 12px "SF Mono"', h: 17, pad: 3 });
+      }
+    });
+    ctx.restore();
+
+    // pen carriage
+    const cx0 = xPen + 46;
+    ctx.fillStyle = T.g800; ctx.fillRect(cx0, 0, w - cx0, h);
+    ctx.fillStyle = T.g700; ctx.fillRect(cx0, 0, 2, h);
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(cx0 - 6, 0, 6, h);
+    // event pen arm
+    drawPen(ctx, xPen, PERF + 11, cx0, T.red, true);
+    CH.forEach((c, i) => {
+      const top = ROW0 + i * ROWH;
+      let y;
+      if (c.notches) y = top + 26 + notchAt(c, t) * 13;
+      else y = isPressed(c, t) ? top + 13 : top + 39;
+      drawPen(ctx, xPen, y, cx0, T[c.ink]);
+    });
+    // carriage screws
+    ctx.fillStyle = T.g700;
+    [24, h - 24].forEach((y) => { ctx.beginPath(); ctx.arc(w - 26, y, 4, 0, 6.283); ctx.fill(); });
+  }
+
+  function drawPen(ctx, x, y, cx0, color, small) {
+    // arm from the carriage, pen body, capillary tip at x
+    ctx.strokeStyle = T.g300; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx0, y); ctx.lineTo(x + 16, y); ctx.stroke();
+    ctx.fillStyle = color;
+    const bw = small ? 10 : 14, bh = small ? 5 : 7;
+    ctx.beginPath();
+    ctx.moveTo(x + 1.2, y);
+    ctx.lineTo(x + 6, y - bh / 2); ctx.lineTo(x + 6 + bw, y - bh / 2); ctx.lineTo(x + 6 + bw, y + bh / 2); ctx.lineTo(x + 6, y + bh / 2);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 8 + bw - 5, y - 1, 3, 2);
+  }
+
+  function isPressed(c, t) {
+    const tt = mod(t, P);
+    return (c.presses || []).some(([d, u]) => tt >= d && tt < u);
+  }
+  function notchAt(c, t) {
+    const tt = mod(t, P);
+    for (const [n, dir] of c.notches) if (tt >= n && tt < n + 0.018) return dir;
+    return 0;
+  }
+
+  /* ---------- Click target: rings, cursor, ripples ---------- */
+  function drawPad(t) {
+    const { ctx, w, h } = PAD;
+    ctx.clearRect(0, 0, w, h);
+    const cx = w * 0.70, cy = h * 0.50;
+    // printed target rings
+    ctx.lineWidth = 1;
+    for (let r = 20; r <= 200; r += 20) {
+      ctx.strokeStyle = r % 60 === 0 ? T.major : T.minor;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.stroke();
+    }
+    ctx.strokeStyle = T.major; ctx.beginPath();
+    ctx.moveTo(cx - 210, cy + 0.5); ctx.lineTo(cx + 210, cy + 0.5); ctx.moveTo(cx + 0.5, cy - 120); ctx.lineTo(cx + 0.5, cy + 120); ctx.stroke();
+
+    const tt = mod(t, P);
+    const all = [];
+    for (const k of [-1, 0, 1]) CLICKS.forEach((c) => all.push({ ...c, t: c.t + k * P }));
+    all.sort((a, b) => a.t - b.t);
+    const pos = (c) => [w * 0.30 + c.x * w * 0.62, c.y * h];
+    // ripples
+    all.forEach((c) => {
+      const dt = tt - c.t; if (dt < 0 || dt > 0.6) return;
+      const k = dt / 0.6; const [x, y] = pos(c);
+      const col = c.ghost ? T.red : c.ch === 'R' ? T.blue : T.ink;
+      ctx.save(); ctx.globalAlpha = (1 - k) * 0.85; ctx.strokeStyle = col; ctx.lineWidth = c.ghost ? 2 : 1.6;
+      ctx.beginPath(); ctx.arc(x, y, 6 + GC.easeOut(k) * (c.ghost ? 34 : 26), 0, 6.283); ctx.stroke();
+      if (c.ghost) { ctx.beginPath(); ctx.arc(x, y, 4 + GC.easeOut(k) * 18, 0, 6.283); ctx.stroke(); }
+      ctx.restore();
+    });
+    // cursor: glide between click positions
+    const real = all.filter((c) => !c.ghost);
+    let i = real.findIndex((c) => c.t > tt);
+    const a = real[i - 1], b = real[i];
+    const k = GC.easeInOut(GC.seg(tt, a.t + 0.12, b.t - 0.04));
+    const [ax, ay] = pos(a), [bx, by] = pos(b);
+    const x = GC.lerp(ax, bx, k), y = GC.lerp(ay, by, k);
+    drawCursor(ctx, x, y, tt - a.t < 0.09);
+  }
+  function drawCursor(ctx, x, y, down) {
+    ctx.save(); ctx.translate(x, y); if (down) ctx.scale(0.92, 0.92);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(0, 17); ctx.lineTo(4.1, 13.2); ctx.lineTo(6.9, 19.4); ctx.lineTo(9.6, 18.2);
+    ctx.lineTo(6.9, 12.2); ctx.lineTo(12.2, 12.2); ctx.closePath();
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.strokeStyle = '#15171a'; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ---------- Live text ---------- */
+  const lastEl = document.getElementById('lastClick');
+  const ghostEl = document.getElementById('ghostCounter');
+  function updateText(t) {
+    const tt = mod(t, P);
+    const all = [];
+    for (const k of [-1, 0]) CLICKS.forEach((c) => all.push({ ...c, t: c.t + k * P }));
+    all.sort((a, b) => a.t - b.t);
+    const past = all.filter((c) => c.t <= tt);
+    const cur = past[past.length - 1];
+    const prev = past[past.length - 2];
+    if (cur.ghost) {
+      const g = GHOSTS.find((x) => Math.abs(mod(x.t, P) - mod(cur.t, P)) < 1e-6);
+      lastEl.innerHTML = `L · <span class="g">${g.ms} ms after release, ghost</span>`;
+    } else {
+      const gap = prev ? Math.round((cur.t - prev.t) * 1000) : 0;
+      lastEl.textContent = `${cur.ch} · ${gap} ms after the previous click`;
+    }
+    let flash = 0;
+    GHOSTS.forEach((g) => { const dt = mod(tt - g.t, P); if (dt < 0.6) flash = Math.max(flash, 1 - GC.seg(dt, 0.2, 0.6)); });
+    ghostEl.style.setProperty('--flash', flash.toFixed(3));
+  }
+
+  function render(t) {
+    if (!S) setup();
+    drawStrip(t);
+    drawPad(t);
+    updateText(t);
+  }
+  setup();
+  GC.demo(render, P, 4.22);
+  window.addEventListener('resize', () => { setup(); render(window.__demo.still); });
+})();
+</script>
+</body>
+</html>

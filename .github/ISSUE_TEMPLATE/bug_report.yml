@@ -1,0 +1,81 @@
+name: Bug report
+description: GhostClick did something wrong, missed ghost clicks, or blocked real ones.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The fastest way to a fix is an evidence report: **Report > Export PNG**,
+        with "Raw event log" ticked, attached below. It contains timings only, no personal data.
+  - type: input
+    id: version
+    attributes:
+      label: GhostClick version
+      description: Shown in Settings > About.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows version
+      options:
+        - Windows 11
+        - Windows 10
+    validations:
+      required: true
+  - type: input
+    id: mouse
+    attributes:
+      label: Mouse model and connection
+      description: Model, and whether it is wired, on a wireless receiver, or Bluetooth.
+      placeholder: "Example: wireless mouse on a USB receiver, 1000 Hz"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where it happens
+      options:
+        - Recorder (click test)
+        - Interval histogram or automatic threshold
+        - System-wide filter (tray)
+        - Hold test
+        - Switch wear meter
+        - Evidence report export
+        - Installer or startup
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      placeholder: "Example: with the filter on, a fast double-click in File Explorer opened nothing."
+    validations:
+      required: true
+  - type: textarea
+    id: filter
+    attributes:
+      label: Filter settings
+      description: Per-button threshold, adaptive on or off, hold protection, exclusions. A screenshot of the Filter screen works.
+  - type: textarea
+    id: apps
+    attributes:
+      label: Game or app in the foreground
+      description: Name it if the problem only happens in one program. Say if it is a game that uses Raw Input.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence report or screenshots
+      description: Drag files here.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I am on the latest release from this repository's Releases page.
+          required: true
+        - label: I searched the open and closed issues first.
+          required: true

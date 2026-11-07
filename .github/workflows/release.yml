@@ -1,0 +1,51 @@
+# Builds the installer and the portable zip on GitHub's own runner when a version tag is pushed,
+# publishes them with SHA256SUMS and signs a build provenance attestation, so anyone can check
+# a download with: gh attestation verify GhostClick-Setup.exe --repo OWNER/ghostclick-mouse-double-click-fix
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build installer
+        run: npx --yes @tauri-apps/cli@2 build --bundles nsis
+
+      - name: Collect release files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $setup = Get-ChildItem target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          Copy-Item $setup.FullName dist/GhostClick-Setup.exe
+          New-Item -ItemType Directory -Force portable | Out-Null
+          Copy-Item target/release/ghostclick.exe portable/GhostClick.exe
+          Compress-Archive -Path portable/* -DestinationPath dist/GhostClick-Portable.zip
+          Get-ChildItem dist -File | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name
+          } | Set-Content dist/SHA256SUMS -Encoding ascii
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/GhostClick-Setup.exe
+            dist/GhostClick-Portable.zip
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/* --title "GhostClick ${{ github.ref_name }}" --generate-notes

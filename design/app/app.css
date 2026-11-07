@@ -1,0 +1,247 @@
+/*
+ * GhostClick app components. Builds on ../tokens.css.
+ * Layout: graphite L-shaped housing (title bar + rail) around a light instrument panel.
+ * The viewport is the app window (1440 x 900).
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--paper-panel);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+h1, h2, h3, p { margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.caps {
+  font-size: var(--t-caps); font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- Window ---------- */
+.window {
+  position: relative;
+  width: 100vw; height: 100vh;
+  display: grid;
+  grid-template-columns: var(--rail-w) 1fr;
+  grid-template-rows: var(--titlebar-h) 1fr;
+  background: var(--graphite-900);
+}
+
+/* Title bar: draggable region, app glyph + name left, caption buttons right */
+.titlebar {
+  grid-column: 1 / -1;
+  display: flex; align-items: stretch;
+  background: var(--graphite-900);
+  color: var(--graphite-300);
+  user-select: none;
+}
+.titlebar .tb-app { display: flex; align-items: center; gap: 10px; padding: 0 14px 0 30px; font-size: 12px; }
+.titlebar .tb-app b { color: var(--graphite-100); font-weight: 600; letter-spacing: .01em; }
+.titlebar .tb-sep { width: 1px; height: 12px; background: var(--graphite-700); }
+.titlebar .tb-status { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--graphite-300); }
+.titlebar .tb-status i { width: 6px; height: 6px; border-radius: 50%; background: #5fc27e; display: block; }
+.titlebar .tb-drag { flex: 1; }
+.caption { display: flex; }
+.caption button {
+  width: var(--caption-w); height: var(--titlebar-h);
+  border: 0; background: transparent; color: var(--graphite-100);
+  display: grid; place-items: center; cursor: default;
+}
+.caption button:hover { background: rgba(255, 255, 255, .09); }
+.caption button:active { background: rgba(255, 255, 255, .05); color: var(--graphite-300); }
+.caption button.close:hover { background: var(--win-close); color: #fff; }
+.caption button.close:active { background: #c8463a; }
+.caption svg { width: 10px; height: 10px; display: block; }
+
+/* Rail: one icon + label per screen */
+.rail {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 0 14px;
+  background: var(--graphite-900);
+}
+.rail a {
+  width: 68px; padding: 9px 0 7px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  border-radius: 9px;
+  color: var(--graphite-300); text-decoration: none;
+  font-size: 11px; font-weight: 500; letter-spacing: .01em;
+}
+.rail a svg { width: 22px; height: 22px; display: block; }
+.rail a:hover { background: var(--graphite-800); color: var(--graphite-100); }
+.rail a.active { background: var(--paper-panel); color: var(--ink); }
+.rail a.active svg { color: var(--ink); }
+.rail .rail-spacer { flex: 1; }
+.rail .rail-filter {
+  width: 68px; padding: 8px 0; border-radius: 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--graphite-300); text-align: center; line-height: 1.2;
+  border: 1px solid var(--graphite-700);
+}
+.rail .rail-filter b { font-family: var(--font-mono); font-size: 12px; color: var(--graphite-100); font-weight: 600; }
+.rail .rail-filter .dot { width: 6px; height: 6px; border-radius: 50%; background: #5fc27e; }
+
+/* Content: the light instrument panel. Top-left corner rounds into the housing like WinUI */
+.content {
+  position: relative;
+  background: var(--paper-panel);
+  border-top-left-radius: 10px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ---------- Page head ---------- */
+.pagehead {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-5);
+  padding: 22px 32px 0;
+}
+.pagehead h1 { font-size: var(--t-page); font-weight: 600; letter-spacing: -.01em; line-height: 1.1; }
+.pagehead .sub { margin-top: 6px; font-size: var(--t-small); color: var(--ink-2); display: flex; gap: 10px; align-items: center; }
+.pagehead .sub .dotsep { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-3); }
+.pagehead .actions { display: flex; align-items: center; gap: 10px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  height: 34px; padding: 0 16px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--t-small); font-weight: 600; letter-spacing: .005em;
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+}
+.btn svg { width: 16px; height: 16px; display: block; }
+.btn:hover { background: var(--paper-sunk); border-color: var(--ink-3); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-ink { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.btn-ink:hover { background: var(--graphite-700); border-color: var(--graphite-700); }
+.btn-red { background: var(--paper); border-color: var(--ink-red); color: var(--ink-red); }
+.btn-red:hover { background: var(--ink-red-wash); border-color: var(--ink-red); }
+.btn-sm { height: 28px; padding: 0 12px; font-size: 12px; }
+.btn-quiet { border-color: transparent; background: transparent; }
+.btn-quiet:hover { background: var(--paper-sunk); border-color: transparent; }
+
+/* Segmented control (button pick, paper speed) */
+.seg {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--paper-sunk); border-radius: var(--r-pill);
+  border: 1px solid var(--rule);
+}
+.seg button {
+  height: 26px; min-width: 38px; padding: 0 12px; border: 0; border-radius: var(--r-pill);
+  background: transparent; font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer;
+}
+.seg button:hover { color: var(--ink); }
+.seg button.on { background: var(--paper); color: var(--ink); box-shadow: 0 0 0 1px var(--rule-strong); }
+
+/* Toggle */
+.toggle {
+  position: relative; width: 40px; height: 22px; flex: none;
+  border-radius: var(--r-pill); border: 1.5px solid var(--ink-3);
+  background: var(--paper); cursor: pointer;
+  transition: background var(--dur-toggle), border-color var(--dur-toggle);
+}
+.toggle::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--ink-3);
+  transition: transform var(--dur-toggle) var(--ease-pen), background var(--dur-toggle);
+}
+.toggle.on { background: var(--ink); border-color: var(--ink); }
+.toggle.on::after { transform: translateX(18px); background: var(--paper); }
+.toggle.disabled { opacity: .4; cursor: not-allowed; }
+
+/* Checkbox */
+.check {
+  width: 18px; height: 18px; flex: none; border-radius: 5px;
+  border: 1.5px solid var(--ink-3); background: var(--paper);
+  display: grid; place-items: center;
+}
+.check svg { width: 12px; height: 12px; display: none; }
+.check.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.check.on svg { display: block; }
+
+/* Stepper (threshold in ms) */
+.stepper {
+  display: inline-flex; align-items: center; height: 30px;
+  border: 1px solid var(--rule-strong); border-radius: var(--r-field); background: var(--paper);
+}
+.stepper button {
+  width: 28px; height: 100%; border: 0; background: transparent; color: var(--ink-2); cursor: pointer;
+  display: grid; place-items: center;
+}
+.stepper button:hover { background: var(--paper-sunk); color: var(--ink); }
+.stepper button svg { width: 12px; height: 12px; }
+.stepper .val {
+  min-width: 58px; text-align: center; font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); line-height: 28px;
+}
+.stepper .val small { font-weight: 400; color: var(--ink-3); font-size: 11px; margin-left: 2px; }
+.stepper.disabled { opacity: .45; }
+
+/* Select (dropdown closed state) */
+.select {
+  height: 32px; padding: 0 10px 0 12px; display: inline-flex; align-items: center; gap: 10px;
+  border: 1px solid var(--rule-strong); border-radius: var(--r-field); background: var(--paper);
+  font-size: var(--t-small); font-weight: 500; cursor: pointer; justify-content: space-between;
+}
+.select svg { width: 12px; height: 12px; color: var(--ink-3); }
+.select:hover { border-color: var(--ink-3); }
+
+/* Pen tag: the channel letter, bordered in the pen's ink color */
+.pen {
+  display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 5px;
+  border-radius: var(--r-chip); border: 1.5px solid currentColor;
+  font-size: 11px; font-weight: 700; letter-spacing: .02em; line-height: 1;
+  color: var(--ink); background: var(--paper);
+}
+.pen.blue { color: var(--ink-blue); }
+.pen.red { color: var(--ink-red); }
+.pen.dim { color: var(--ink-3); }
+
+/* Chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+  border-radius: var(--r-pill); font-size: 12px; font-weight: 600; white-space: nowrap; flex: none;
+  border: 1px solid var(--rule-strong); background: var(--paper); color: var(--ink-2);
+}
+.chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: block; }
+.chip.red { color: var(--ink-red); border-color: color-mix(in srgb, var(--ink-red) 45%, transparent); background: var(--ink-red-wash); }
+.chip.green { color: var(--ink-green); border-color: color-mix(in srgb, var(--ink-green) 40%, transparent); background: #ebf6ee; }
+.chip.amber { color: var(--ink-amber); border-color: color-mix(in srgb, var(--ink-amber) 40%, transparent); background: #fbf3e4; }
+
+/* Hairline-separated regions instead of cards */
+.region { border-top: 1px solid var(--rule); }
+.panel-title { font-size: var(--t-panel); font-weight: 600; letter-spacing: -.005em; }
+
+/* Chart paper as a DOM background (the canvas draws its own) */
+.paper-grid {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+}
+
+/* Strip perforations: sprocket holes punched through the paper margin */
+.perf {
+  height: 18px;
+  background-color: var(--paper);
+  background-image: radial-gradient(circle at 10px 9px, var(--graphite-900) 0 3.6px, transparent 4.2px);
+  background-size: 20px 18px;
+  background-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

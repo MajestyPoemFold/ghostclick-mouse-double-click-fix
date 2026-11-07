@@ -1,0 +1,12 @@
+# Rust
+/target/
+src-tauri/gen/
+
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Apple fonts are licensed for local use only
+design/assets/fonts/*
+!design/assets/fonts/README.md

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick Evidence Report</title>
+<link rel="stylesheet" href="../assets/apple-fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .rep { display: flex; flex-direction: column; }
+  .body { flex: 1; display: grid; grid-template-columns: 310px 1fr; gap: 28px; padding: 18px 32px 0; min-height: 0; }
+
+  /* Options */
+  .opts { display: flex; flex-direction: column; gap: 18px; padding-bottom: 22px; min-width: 0; }
+  .opts h2 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .opts ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .opts li { display: flex; align-items: center; gap: 10px; height: 38px; border-bottom: 1px solid var(--rule); font-size: 13px; }
+  .opts li .mono { margin-left: auto; font-size: 11px; color: var(--ink-3); }
+  .opts li.locked { color: var(--ink-2); }
+  .opts li.locked .check { opacity: .5; }
+  .field label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+  .field .input { height: 34px; border: 1px solid var(--rule-strong); border-radius: var(--r-field); background: var(--paper); padding: 0 12px; display: flex; align-items: center; font-family: var(--font-mono); font-size: 13px; }
+  .field .input.ph { color: var(--ink-3); font-family: var(--font-ui); }
+  .field + .field { margin-top: 12px; }
+  .privacy { margin-top: auto; font-size: 12px; color: var(--ink-3); line-height: 1.5; padding-top: 14px; border-top: 1px solid var(--rule); }
+
+  /* Print preview desk */
+  .desk { position: relative; background: var(--graphite-900); border-radius: 12px 12px 0 0; overflow: hidden; min-width: 0; }
+  .desk-bar { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; color: var(--graphite-300); font-size: 12px; z-index: 2; }
+  .desk-bar .mono { font-size: 11px; }
+  .desk-bar b { color: var(--graphite-100); font-weight: 600; }
+  .sheet-wrap { position: absolute; inset: 40px 0 0; display: flex; justify-content: center; }
+  .sheet {
+    position: relative; width: 760px; background: var(--paper); color: var(--ink);
+    padding: 18px 52px 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
+  }
+  /* tractor-feed margins: holes punched through to the desk, dotted tear lines */
+  .sheet::before, .sheet::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 30px;
+    background-image: radial-gradient(circle at 15px 12px, var(--graphite-900) 0 5px, transparent 5.6px);
+    background-size: 30px 24px; background-repeat: repeat-y;
+  }
+  .sheet::before { left: 0; border-right: 1px dashed #c9cfca; }
+  .sheet::after { right: 0; border-left: 1px dashed #c9cfca; }
+  .scroll { position: absolute; right: 6px; top: 50px; width: 6px; height: 520px; border-radius: 3px; background: var(--graphite-700); z-index: 2; }
+
+  .p-head { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .p-brand { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+  .p-brand svg rect { stroke: var(--ink); stroke-width: 1; }
+  .p-head h2 { margin-top: 6px; font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+  .p-meta { text-align: right; font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); line-height: 1.6; }
+  .p-meta b { color: var(--ink); }
+
+  .p-claim { margin-top: 14px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+  .p-claim p { font-size: 20px; font-weight: 600; line-height: 1.25; letter-spacing: -.01em; text-wrap: balance; }
+  .p-claim p em { font-style: normal; color: var(--ink-red); }
+  .p-claim small { display: block; margin-top: 5px; font-size: 12px; font-weight: 400; color: var(--ink-2); letter-spacing: 0; }
+  .stamp { border: 2px solid var(--ink-red); color: var(--ink-red); border-radius: 6px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 1.35; text-align: center; transform: rotate(-4deg); letter-spacing: .04em; }
+
+  .p-figs { margin-top: 14px; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .p-figs div { padding: 7px 10px; border-left: 1px solid var(--rule); }
+  .p-figs div:nth-child(4n+1) { border-left: 0; padding-left: 0; }
+  .p-figs div:nth-child(n+5) { border-top: 1px dashed var(--rule); }
+  .p-figs span { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .p-figs b { display: block; font-family: var(--font-mono); font-size: 15px; font-weight: 600; margin-top: 1px; }
+  .p-figs b.r { color: var(--ink-red); }
+
+  .p-sec { margin-top: 10px; }
+  .p-sec h3 { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .p-sec h3 span { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+  .p-two { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; }
+  .p-sec canvas { width: 100%; display: block; }
+  #pHist { height: 100px; }
+  #pHold { height: 100px; }
+  .p-ex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .p-ex canvas { height: 62px; }
+  .p-ex .cap { font-family: var(--font-mono); font-size: 10px; color: var(--ink-2); margin-top: 3px; display: flex; justify-content: space-between; }
+  .p-ex .cap b { color: var(--ink-red); }
+
+  .p-sys { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; font-size: 11px; }
+  .p-sys div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--rule); padding: 2px 0; }
+  .p-sys div span:first-child { color: var(--ink-3); white-space: nowrap; }
+  .p-sys div span:last-child { font-family: var(--font-mono); text-align: right; }
+
+  .p-foot { margin-top: 10px; display: grid; grid-template-columns: 1fr 160px 120px; gap: 18px; align-items: end; font-size: 10px; color: var(--ink-3); }
+  .p-foot .mono { font-size: 10px; color: var(--ink-2); line-height: 1.5; }
+  .p-foot .sig { border-top: 1px solid var(--ink); padding-top: 3px; }
+</style>
+</head>
+<body>
+<div class="window">
+  <header class="titlebar"></header>
+  <nav class="rail" data-active="report" aria-label="Screens"></nav>
+  <main class="content rep">
+    <div class="pagehead">
+      <div>
+        <h1>Evidence report</h1>
+        <p class="sub">For a warranty claim (RMA) <span class="dotsep"></span> built from test 2, 5:00 of testing <span class="dotsep"></span> nothing is uploaded</p>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" data-icon="copy">Copy summary</button>
+        <button class="btn" type="button" data-icon="image">Export PNG</button>
+        <button class="btn btn-ink" type="button" data-icon="download">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="body">
+      <aside class="opts">
+        <div>
+          <h2>Include</h2>
+          <ul>
+            <li class="locked"><span class="check on"></span>Summary and key figures<span class="mono">always</span></li>
+            <li><span class="check on"></span>Interval histogram</li>
+            <li><span class="check on"></span>Strip excerpts<span class="mono">3 ghosts</span></li>
+            <li><span class="check on"></span>Hold test<span class="mono">run 3</span></li>
+            <li><span class="check on"></span>System info</li>
+            <li><span class="check"></span>Raw event log<span class="mono">.csv, 61 KB</span></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Claim details</h2>
+          <div class="field"><label for="rma">RMA or order number</label><div class="input" id="rma">RMA-58213</div></div>
+          <div class="field"><label for="sn">Mouse serial number</label><div class="input ph" id="sn">optional, on the label underneath</div></div>
+        </div>
+        <div>
+          <h2>Paper</h2>
+          <div class="seg"><button class="on">A4</button><button>Letter</button><button>Long strip</button></div>
+        </div>
+        <p class="privacy">The report is a file on your PC. GhostClick sends nothing anywhere; you attach it to the claim yourself.</p>
+      </aside>
+
+      <section class="desk" aria-label="Print preview">
+        <div class="desk-bar"><span><b>Preview</b> · page 1 of 2 · A4</span><span class="mono">ghostclick-evidence-2026-11-07.pdf</span></div>
+        <div class="scroll"></div>
+        <div class="sheet-wrap">
+          <article class="sheet">
+            <header class="p-head">
+              <div>
+                <div class="p-brand"><span class="glyph"></span>GhostClick 1.0.0</div>
+                <h2>Mouse chatter evidence report</h2>
+              </div>
+              <div class="p-meta">report <b>GC-20261107-4F2A</b><br>claim <b>RMA-58213</b><br>printed 7 Nov 2026, 14:16</div>
+            </header>
+
+            <div class="p-claim">
+              <p><em>37 double-click events under 20&nbsp;ms</em> during 5&nbsp;minutes of testing.<small>All on the Left button, all within 2.8 to 15.4 ms of a release. A healthy switch produces none. Right, Middle, Back and Forward produced none in the same test.</small></p>
+              <div class="stamp">LEFT BUTTON<br>CHATTERS</div>
+            </div>
+
+            <div class="p-figs">
+              <div><span>Test duration</span><b>5:00</b></div>
+              <div><span>Clicks</span><b>1,184</b></div>
+              <div><span>Ghost doubles</span><b class="r">37</b></div>
+              <div><span>Chatter rate</span><b class="r">3.1 %</b></div>
+              <div><span>Shortest gap</span><b>2.8 ms</b></div>
+              <div><span>Median ghost gap</span><b>7.4 ms</b></div>
+              <div><span>Fastest real double</span><b>94 ms</b></div>
+              <div><span>Hold test, 3 s</span><b class="r">4 dropouts</b></div>
+            </div>
+
+            <div class="p-two">
+              <div class="p-sec"><h3>Time between clicks, Left <span>log ms, √ count</span></h3><canvas id="pHist"></canvas></div>
+              <div class="p-sec"><h3>Hold test, Left <span>run 3, 14:11</span></h3><canvas id="pHold"></canvas></div>
+            </div>
+
+            <div class="p-sec">
+              <h3>Strip excerpts <span>10 ms / div, ink high = pressed</span></h3>
+              <div class="p-ex">
+                <div><canvas id="ex1"></canvas><div class="cap"><span>14:06:21.418</span><b>6.1 ms</b></div></div>
+                <div><canvas id="ex2"></canvas><div class="cap"><span>14:06:20.128</span><b>11.0 ms</b></div></div>
+                <div><canvas id="ex3"></canvas><div class="cap"><span>14:05:40.776</span><b>2.8 ms</b></div></div>
+              </div>
+            </div>
+
+            <div class="p-sec">
+              <h3>System</h3>
+              <div class="p-sys">
+                <div><span>Windows</span><span>11 Pro 24H2, build 26100</span></div>
+                <div><span>Device</span><span>HID-compliant mouse</span></div>
+                <div><span>Hardware ID</span><span>VID_1A2B &amp; PID_3C4D</span></div>
+                <div><span>Connection</span><span>USB, root hub port 3</span></div>
+                <div><span>Polling measured</span><span>1000 Hz (996 to 1003)</span></div>
+                <div><span>Input source</span><span>Raw Input, WM_INPUT</span></div>
+                <div><span>Clock</span><span>QPC, 10 MHz</span></div>
+                <div><span>Filter during test</span><span>off</span></div>
+              </div>
+            </div>
+
+            <footer class="p-foot">
+              <div class="mono">raw events SHA-256 9f3c0b1e…5d27a71e<br>sample data shown in this design</div>
+              <div class="sig">Tested by</div>
+              <div class="sig">Date</div>
+            </footer>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const GC = window.GC;
+  document.querySelectorAll('.check').forEach((c) => (c.innerHTML = GC.ICON.check));
+  document.querySelector('.glyph').innerHTML = GC.APP_GLYPH;
+
+  const GHOST = { 8: 1, 9: 1, 10: 1, 11: 1, 12: 2, 13: 2, 14: 3, 15: 3, 16: 4, 17: 5, 18: 4, 19: 3, 20: 3, 21: 2, 22: 1, 23: 1 };
+  const REAL = { 39: 1, 40: 3, 41: 6, 42: 9, 43: 11, 44: 10, 45: 7, 46: 8, 47: 15, 48: 27, 49: 46, 50: 66, 51: 88,
+    52: 100, 53: 95, 54: 80, 55: 65, 56: 50, 57: 36, 58: 26, 59: 16 };
+
+  function render() {
+    const T = GC.tok();
+    // histogram
+    {
+      const { ctx, w, h } = GC.canvas(document.getElementById('pHist'));
+      GC.grid(ctx, 0, 0, w, h, { tok: T, noVertical: true });
+      const x0 = 6, x1 = w - 6, yb = h - 16, y0 = 6;
+      const X = (ms) => x0 + (Math.log10(ms) / 3) * (x1 - x0), Y = (n) => yb - (Math.sqrt(n) / 10) * (yb - y0);
+      ctx.lineWidth = 1;
+      for (let dec = 0; dec < 3; dec++) for (let m = 1; m <= 9; m++) {
+        ctx.strokeStyle = m === 1 ? T.major : T.minor; const x = GC.snap(X(Math.pow(10, dec) * m));
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, yb); ctx.stroke();
+      }
+      for (let i = 0; i < 60; i++) {
+        const n = GHOST[i] || REAL[i]; if (!n) continue;
+        const a = X(Math.pow(10, i / 20)) + 1, b = X(Math.pow(10, (i + 1) / 20)) - 1;
+        ctx.fillStyle = GHOST[i] ? T.red : T.ink; ctx.fillRect(a, Y(n), b - a, yb - Y(n));
+      }
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 1.5; ctx.setLineDash([3, 2]);
+      ctx.beginPath(); ctx.moveTo(GC.snap(X(38)), y0); ctx.lineTo(GC.snap(X(38)), yb); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, yb + 0.5); ctx.lineTo(w, yb + 0.5); ctx.stroke();
+      ctx.fillStyle = T.label; ctx.font = '500 9px "SF Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      [[1, '1'], [10, '10'], [100, '100'], [1000, '1 s']].forEach(([v, s]) => { ctx.textAlign = v === 1 ? 'left' : v === 1000 ? 'right' : 'center'; ctx.fillText(s, X(v), yb + 4); });
+      ctx.textAlign = 'center'; ctx.fillText('20', X(20), yb + 4); ctx.fillText('38', X(38), yb + 4);
+      GC.label(ctx, 'ghosts', X(7), Y(5) - 9, { align: 'center', color: T.red, font: '600 9px "SF Mono"', h: 12, pad: 2 });
+      GC.label(ctx, 'real clicks', X(400), 12, { align: 'center', color: T.ink, font: '600 9px "SF Mono"', h: 12, pad: 2 });
+    }
+    // hold test
+    {
+      const { ctx, w, h } = GC.canvas(document.getElementById('pHold'));
+      GC.grid(ctx, 0, 0, w, h, { tok: T });
+      const hi = 18, lo = h - 22, a = 10, b = w - 14;
+      const drops = [0.14, 0.36, 0.57, 0.79];
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, lo); ctx.lineTo(a, lo); ctx.lineTo(a, hi);
+      drops.forEach((f) => { const x = a + (b - a) * f; ctx.lineTo(x, hi); ctx.lineTo(x, lo); ctx.lineTo(x + 1.5, lo); ctx.lineTo(x + 1.5, hi); });
+      ctx.lineTo(b, hi); ctx.lineTo(b, lo); ctx.lineTo(w, lo); ctx.stroke();
+      drops.forEach((f, i) => GC.inkCircle(ctx, a + (b - a) * f + 0.8, (hi + lo) / 2, 7, (lo - hi) / 2 + 5, 1, 40 + i, T.red, 1.4));
+      GC.label(ctx, '4 dropouts in 3.00 s', w / 2, lo + 11, { align: 'center', color: T.red, font: '600 9px "SF Mono"', h: 12, pad: 2 });
+    }
+    // excerpts
+    [[6.1, 101], [11.0, 102], [2.8, 103]].forEach(([g, seed], i) => {
+      const { ctx, w, h } = GC.canvas(document.getElementById('ex' + (i + 1)));
+      GC.grid(ctx, 0, 0, w, h, { tok: T });
+      const hi = 14, lo = h - 14, d = 30, u = 110, gx = u + g, gw = 2.5;
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+      ctx.moveTo(0, lo); ctx.lineTo(d, lo); ctx.lineTo(d, hi); ctx.lineTo(u, hi); ctx.lineTo(u, lo); ctx.lineTo(gx, lo); ctx.lineTo(gx, hi); ctx.lineTo(gx + gw, hi); ctx.lineTo(gx + gw, lo); ctx.lineTo(w, lo);
+      ctx.stroke();
+      GC.inkCircle(ctx, gx + 1, (hi + lo) / 2, 8, (lo - hi) / 2 + 6, 1, seed, T.red, 1.5);
+    });
+  }
+  window.__demo = { duration: 1, still: 0, seek: render };
+  GC.fontsReady().then(render);
+})();
+</script>
+</body>
+</html>

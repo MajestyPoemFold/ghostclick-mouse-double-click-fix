@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick README Kit</title>
+<link rel="stylesheet" href="../assets/apple-fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  /*
+   * README graphics. One part per render job:  kit.html?part=<name>[&theme=dark]
+   *   banner, social, btn-download, btn-faq, btn-discord, h-<section>
+   * Without ?part the page shows every part for review.
+   * Transparent parts keep the page background transparent; the paper's sprocket holes are punched
+   * through, so the GitHub page shows through them in light and dark mode.
+   */
+  :root {
+    --head-ink: var(--ink);           /* section header text on GitHub light */
+    --head-rule: #c4cac5;
+    --chip-edge: #d0d7de;
+  }
+  :root[data-theme="dark"] {
+    --head-ink: #e6edf3;              /* GitHub dark foreground */
+    --head-rule: #3d444d;
+    --chip-edge: transparent;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: transparent; color: var(--ink); font-family: var(--font-ui); font-variant-numeric: tabular-nums; }
+  body.gallery { background: #e9ebe8; padding: 24px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
+  body.gallery .dark { background: #0d1117; padding: 16px; }
+  .part { display: inline-block; position: relative; }
+
+  /* Banner and social preview */
+  .banner { width: 1280px; height: 360px; }
+  .banner canvas, .social canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .banner .words { position: absolute; left: 64px; top: 52px; }
+  .wordmark { font-weight: 800; font-size: 96px; letter-spacing: -.035em; line-height: .9; color: var(--ink); }
+  .wordmark span { color: var(--ink-red); }
+  .tagline { margin-top: 16px; font-weight: 500; font-size: 28px; letter-spacing: -.01em; color: var(--ink-2); }
+  .banner .words .mono { margin-top: 12px; font-family: var(--font-mono); font-size: 15px; color: var(--grid-label); }
+
+  .social { width: 1280px; height: 640px; background: var(--graphite-900); }
+  .social .words { position: absolute; left: 72px; top: 70px; }
+  .social .wordmark { color: #f4f5f3; font-size: 118px; }
+  .social .tagline { color: var(--graphite-100); font-size: 38px; margin-top: 20px; }
+  .social .meta { position: absolute; left: 72px; bottom: 44px; font-family: var(--font-mono); font-size: 18px; color: var(--graphite-300); display: flex; gap: 28px; }
+  .social .meta b { color: #f4f5f3; font-weight: 600; }
+
+  /* Buttons */
+  .rbtn {
+    height: 48px; padding: 0 24px 0 20px; display: inline-flex; align-items: center; gap: 12px;
+    border-radius: 999px; font-size: 18px; font-weight: 600; letter-spacing: -.005em; white-space: nowrap;
+  }
+  .rbtn svg { width: 22px; height: 22px; flex: none; }
+  .rbtn small { font-family: var(--font-mono); font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px; }
+  .rbtn.ink { background: var(--ink); color: #ffffff; box-shadow: inset 0 0 0 1.5px #3a3e43; }
+  .rbtn.ink small { background: #2e3135; color: #c9cdc9; }
+  .rbtn.paper { background: #ffffff; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .rbtn.graphite { background: #2a2d31; color: #eef0ee; box-shadow: inset 0 0 0 1.5px #44494f; }
+
+  /* Section headers */
+  .h { width: 1000px; height: 80px; display: flex; align-items: center; gap: 22px; }
+  .h canvas { width: 124px; height: 62px; flex: none; }
+  .h b { font-size: 38px; font-weight: 700; letter-spacing: -.02em; color: var(--head-ink); white-space: nowrap; }
+  .h .rule { flex: 1; height: 2px; background: var(--head-rule); position: relative; margin-left: 4px; }
+  .h .rule::after { content: ""; position: absolute; right: 0; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--head-rule); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="../app/shared.js"></script>
+<script>
+(function () {
+  const GC = window.GC;
+  const q = new URLSearchParams(location.search);
+  const part = q.get('part');
+  if (q.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+
+  const HEADERS = {
+    'h-features': ['Features', 'ghost'],
+    'h-test': ['Double click test', 'pulses'],
+    'h-screens': ['Screenshots', 'two'],
+    'h-install': ['Install', 'step'],
+    'h-how': ['How it works', 'hist'],
+    'h-faq': ['FAQ', 'ghost2'],
+    'h-docs': ['Documentation', 'hold'],
+    'h-roadmap': ['Roadmap', 'stairs'],
+    'h-contributing': ['Contributing', 'two'],
+  };
+  const ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M7 10.5l5 5 5-5M4.5 20h15"/></svg>';
+  const ICON_TEST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M1.5 17h3.5V7h7v10h1.6"/><path d="M15.8 17V7" stroke="#d3261d"/><path d="M17.6 17h4.9"/></svg>';
+  const ICON_CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4.5 3.5V17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M8 11h.01M12 11h.01M16 11h.01" stroke-width="2.6"/></svg>';
+
+  const root = document.getElementById('root');
+  const parts = part ? [part] : ['banner', 'btn-download', 'btn-faq', 'btn-discord', ...Object.keys(HEADERS), 'social'];
+  if (!part) document.body.classList.add('gallery');
+
+  function html(p) {
+    if (p === 'banner') return `<div class="part banner" id="part"><canvas></canvas><div class="words"><div class="wordmark">GhostClick</div><div class="tagline">Mouse double-click test and fix for Windows</div><div class="mono">find ghost clicks · filter them system-wide · prove it for the RMA</div></div></div>`;
+    if (p === 'social') return `<div class="part social" id="part"><canvas></canvas><div class="words"><div class="wordmark">GhostClick</div><div class="tagline">Mouse double-click test and fix for Windows</div></div><div class="meta"><span><b>free</b> · open source · no ads</span><span>Windows 10 / 11</span><span>github.com/OWNER/ghostclick-mouse-double-click-fix</span></div></div>`;
+    if (p === 'btn-download') return `<div class="part" id="part"><span class="rbtn ink">${ICON_DL}Download for Windows<small>free · x64</small></span></div>`;
+    if (p === 'btn-faq') return `<div class="part" id="part"><span class="rbtn paper">${ICON_TEST}Why it double clicks</span></div>`;
+    if (p === 'btn-discord') return `<div class="part" id="part"><span class="rbtn graphite">${ICON_CHAT}Discord</span></div>`;
+    if (HEADERS[p]) return `<div class="part h" id="part" data-trace="${HEADERS[p][1]}"><canvas></canvas><b>${HEADERS[p][0]}</b><span class="rule"></span></div>`;
+    return '';
+  }
+  if (part) root.innerHTML = html(part);
+  else {
+    root.innerHTML = parts.map((p) => html(p).replace('id="part"', `data-name="${p}"`)).join('') +
+      '<div class="dark" data-theme-preview>' + Object.keys(HEADERS).slice(0, 3).map((p) => html(p).replace('id="part"', '')).join('') + '</div>';
+  }
+
+  /* ---------- drawing ---------- */
+  let T;
+  function punch(ctx, x, y, w, h, off, pitch, r) {
+    ctx.save(); ctx.globalCompositeOperation = 'destination-out';
+    const cy = y + h / 2;
+    for (let i = Math.floor(off / pitch) - 1; ; i++) {
+      const cx = x + i * pitch + pitch / 2 - off; if (cx - r > x + w) break;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function strip(ctx, x, y, w, h, o = {}) {
+    const P = o.perf || 20, pitch = o.pitch || 20, r = o.r || 4;
+    ctx.fillStyle = o.margin || T.paper; ctx.fillRect(x, y, w, P); ctx.fillRect(x, y + h - P, w, P);
+    GC.grid(ctx, x, y + P, w, h - 2 * P, { tok: T, originY: y + P, offset: o.offset || 0 });
+    ctx.strokeStyle = T.major; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(x, y + P + 0.5); ctx.lineTo(x + w, y + P + 0.5); ctx.moveTo(x, y + h - P - 0.5); ctx.lineTo(x + w, y + h - P - 0.5); ctx.stroke();
+    if (o.punch !== false) { punch(ctx, x, y, w, P, 0, pitch, r); punch(ctx, x, y + h - P, w, P, 0, pitch, r); }
+    else {
+      ctx.fillStyle = o.hole; const draw = (yy) => { for (let cx = x + pitch / 2; cx < x + w; cx += pitch) { ctx.beginPath(); ctx.arc(cx, yy, r, 0, 6.283); ctx.fill(); } };
+      draw(y + P / 2); draw(y + h - P / 2);
+    }
+  }
+  // square-pulse trace from a list of [down, up] in px
+  function trace(ctx, x0, x1, hi, lo, presses, color, lw = 2) {
+    ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineJoin = 'miter'; ctx.beginPath(); ctx.moveTo(x0, lo);
+    presses.forEach(([d, u]) => { ctx.lineTo(d, lo); ctx.lineTo(d, hi); ctx.lineTo(u, hi); ctx.lineTo(u, lo); });
+    ctx.lineTo(x1, lo); ctx.stroke();
+  }
+  function carriage(ctx, x, y, h, w, pens) {
+    ctx.fillStyle = T.g800; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = T.g700; ctx.fillRect(x, y, 2, h);
+    pens.forEach(([py, color, tip]) => {
+      ctx.strokeStyle = T.g300; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, py); ctx.lineTo(tip + 18, py); ctx.stroke();
+      ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(tip + 1.2, py); ctx.lineTo(tip + 6, py - 4.5); ctx.lineTo(tip + 22, py - 4.5); ctx.lineTo(tip + 22, py + 4.5); ctx.lineTo(tip + 6, py + 4.5); ctx.closePath(); ctx.fill();
+    });
+  }
+
+  function drawBanner(el) {
+    const { ctx, w, h } = GC.canvas(el.querySelector('canvas'));
+    ctx.clearRect(0, 0, w, h);
+    const P = 22;
+    strip(ctx, 0, 0, w, h, { perf: P, pitch: 22, r: 4.4, margin: '#f3f5f3', offset: 7 });
+    // hairline edge so white paper reads on white GitHub
+    ctx.strokeStyle = '#d3d8d4'; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+    const xPen = w - 118;
+    // text knockout
+    ctx.fillStyle = 'rgba(255,255,255,.86)'; ctx.fillRect(48, 46, 650, 186);
+    // event marker ticks
+    const ev = 879;
+    ctx.strokeStyle = T.red; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(ev + 0.5, P + 8); ctx.lineTo(ev + 0.5, P + 22); ctx.stroke();
+    // right button, blue, upper lane on the right half
+    trace(ctx, 740, xPen, 72, 112, [[790, 846], [1010, 1064]], T.blue, 2);
+    // left button, the long lane
+    const hi = 258, lo = 312;
+    trace(ctx, 0, xPen, hi, lo, [[40, 86], [196, 244], [352, 398], [498, 548], [664, 716], [826, 875], [878, 880.5], [1000, 1048]], T.ink, 2.2);
+    // ghost annotation
+    const gx = 879.5;
+    GC.inkCircle(ctx, gx, (hi + lo) / 2, 15, 40, 1, 7, T.red, 2.6);
+    ctx.strokeStyle = T.red; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(gx + 12, hi - 12); ctx.lineTo(gx + 30, hi - 34); ctx.lineTo(gx + 40, hi - 34); ctx.stroke();
+    GC.label(ctx, '6 ms, ghost', gx + 44, hi - 34, { color: T.red, font: '700 21px "SF Mono"', h: 28, pad: 5 });
+    // pen carriage
+    carriage(ctx, xPen + 46, 0, h, w - xPen - 46, [[P + 15, T.red, xPen], [112, T.blue, xPen], [lo, T.ink, xPen]]);
+    ctx.font = '500 13px "SF Mono"'; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = T.label; ctx.fillText('20 ms / div', xPen - 10, h - P - 10);
+  }
+
+  function drawSocial(el) {
+    const { ctx, w, h } = GC.canvas(el.querySelector('canvas'));
+    ctx.fillStyle = T.g900; ctx.fillRect(0, 0, w, h);
+    const y = 318, sh = 236, P = 22;
+    ctx.fillStyle = T.paper; ctx.fillRect(0, y, w, sh);
+    strip(ctx, 0, y, w, sh, { perf: P, pitch: 22, r: 4.6, punch: false, hole: T.g900, offset: 3 });
+    const xPen = w - 132;
+    const ev = 921;
+    ctx.strokeStyle = T.red; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(ev + 0.5, y + P + 7); ctx.lineTo(ev + 0.5, y + P + 23); ctx.stroke();
+    trace(ctx, 0, xPen, y + 54, y + 96, [[120, 178], [600, 660], [1010, 1070]], T.blue, 2.2);
+    const hi = y + 140, lo = y + 196;
+    trace(ctx, 0, xPen, hi, lo, [[30, 88], [250, 302], [430, 486], [660, 716], [868, 917], [920, 922.5], [1056, 1100]], T.ink, 2.4);
+    GC.inkCircle(ctx, 921.5, (hi + lo) / 2, 16, 42, 1, 9, T.red, 2.8);
+    ctx.strokeStyle = T.red; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(936, hi - 4); ctx.lineTo(948, hi - 20); ctx.lineTo(958, hi - 20); ctx.stroke();
+    GC.label(ctx, '6 ms, ghost', 962, hi - 20, { color: T.red, font: '700 19px "SF Mono"', h: 26, pad: 4 });
+    carriage(ctx, xPen + 48, y, sh, w - xPen - 48, [[y + P + 15, T.red, xPen], [y + 96, T.blue, xPen], [lo, T.ink, xPen]]);
+  }
+
+  function drawHeader(el) {
+    const kind = el.dataset.trace;
+    const { ctx, w, h } = GC.canvas(el.querySelector('canvas'));
+    ctx.clearRect(0, 0, w, h);
+    const P = 10;
+    ctx.fillStyle = T.paper; ctx.fillRect(0, 0, w, h);
+    strip(ctx, 0, 0, w, h, { perf: P, pitch: 12, r: 2.4, offset: 4 });
+    const edge = getComputedStyle(document.documentElement).getPropertyValue('--chip-edge').trim();
+    if (edge && edge !== 'transparent') { ctx.strokeStyle = edge; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, w - 1, h - 1); }
+    const hi = P + 10, lo = h - P - 9, ink = T.ink;
+    if (kind === 'ghost' || kind === 'ghost2') {
+      trace(ctx, 0, w, hi, lo, [[12, 44], [70, 98], [101.5, 103.5]], ink, 1.8);
+      GC.inkCircle(ctx, 102.5, (hi + lo) / 2, 8, 19, 1, kind === 'ghost' ? 3 : 5, T.red, 1.8);
+    } else if (kind === 'pulses') {
+      trace(ctx, 0, w, hi, lo, [[10, 30], [46, 66], [82, 102]], ink, 1.8);
+    } else if (kind === 'two') {
+      trace(ctx, 0, w, hi, hi + 14, [[18, 46], [76, 104]], T.blue, 1.6);
+      trace(ctx, 0, w, lo - 14, lo, [[34, 62], [88, 112]], ink, 1.6);
+    } else if (kind === 'step') {
+      trace(ctx, 0, w, hi, lo, [[30, 140]], ink, 1.8);
+    } else if (kind === 'hist') {
+      const xs = [[10, 1], [18, 3], [26, 5], [34, 3], [42, 1], [66, 2], [74, 5], [82, 8], [90, 10], [98, 7], [106, 4]];
+      xs.forEach(([x, n], i) => { ctx.fillStyle = i < 5 ? T.red : ink; const bh = n * 3.6; ctx.fillRect(x, lo - bh, 6, bh); });
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.4; ctx.setLineDash([3, 2]); ctx.beginPath(); ctx.moveTo(56.5, hi - 2); ctx.lineTo(56.5, lo); ctx.stroke(); ctx.setLineDash([]);
+    } else if (kind === 'hold') {
+      trace(ctx, 0, w, hi, lo, [[12, 58], [60, 92], [94, 116]], ink, 1.8);
+      GC.inkCircle(ctx, 59, (hi + lo) / 2, 6, 19, 1, 11, T.red, 1.6);
+    } else if (kind === 'stairs') {
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(0, lo);
+      [[20, lo], [20, lo - 10], [48, lo - 10], [48, lo - 20], [76, lo - 20], [76, lo - 30], [104, lo - 30], [104, hi], [124, hi]].forEach(([x, y]) => ctx.lineTo(x, y));
+      ctx.stroke();
+    }
+  }
+
+  GC.fontsReady().then(() => {
+    T = GC.tok();
+    document.querySelectorAll('.banner').forEach(drawBanner);
+    document.querySelectorAll('.social').forEach(drawSocial);
+    document.querySelectorAll('.h').forEach(drawHeader);
+  });
+})();
+</script>
+</body>
+</html>

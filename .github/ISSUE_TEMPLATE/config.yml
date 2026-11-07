@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and setups
+    url: https://github.com/OWNER/ghostclick-mouse-double-click-fix/discussions
+    about: Ask how to read a histogram, which threshold to pick, or whether your mouse is worn.
+  - name: Discord
+    url: https://discord.gg/INVITE
+    about: Quick help from other users.

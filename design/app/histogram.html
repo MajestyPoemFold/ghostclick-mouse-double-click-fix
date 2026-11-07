@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick Intervals</title>
+<link rel="stylesheet" href="../assets/apple-fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .hist { display: flex; flex-direction: column; }
+  .body { flex: 1; display: grid; grid-template-columns: 1fr 352px; gap: 30px; padding: 18px 32px 22px; min-height: 0; }
+
+  /* Paper always sits in graphite housing; the sprocket holes show it */
+  .housing { background: var(--graphite-900); border-radius: 12px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .housing .cap { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; color: var(--graphite-300); font-size: 12px; }
+  .housing .cap b { color: var(--graphite-100); font-weight: 600; font-size: 13px; }
+  .housing .cap .mono { font-size: 11px; }
+  #hist { width: 100%; height: 478px; display: block; }
+  #prev { width: 100%; height: 176px; display: block; }
+
+  .side { display: flex; flex-direction: column; min-width: 0; }
+  .big { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+  .big b { font-size: var(--t-hero); font-weight: 500; letter-spacing: -.03em; line-height: 1; }
+  .big span { font-size: 26px; color: var(--ink-2); font-weight: 500; }
+  .learned { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+  .learned strong { color: var(--ink); font-weight: 600; }
+  .derive { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .derive li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--rule); font-size: 13px; color: var(--ink-2); }
+  .derive li .mono { color: var(--ink); font-weight: 600; font-size: 13px; }
+  .derive li .mono.r { color: var(--ink-red); }
+  .derive li.total { border-bottom: 1px solid var(--rule); }
+  .derive li.total span:first-child { color: var(--ink); font-weight: 600; }
+  .filter-row { margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--rule); }
+  .filter-row .txt { flex: 1; min-width: 0; }
+  .filter-row b { display: block; font-size: 15px; font-weight: 600; }
+  .filter-row small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; font-family: var(--font-mono); }
+  .filter-row small.on { color: var(--ink-red); }
+  .side .btns { margin-top: 14px; display: flex; gap: 10px; }
+  .side .note { margin-top: auto; font-size: 12px; color: var(--ink-3); line-height: 1.5; padding-top: 14px; border-top: 1px solid var(--rule); }
+  .others { margin-top: 26px; }
+  .others ul { list-style: none; margin: 8px 0 0; padding: 0; }
+  .others li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; height: 34px; border-bottom: 1px dashed var(--rule); font-size: 13px; color: var(--ink-2); }
+  .others li .mono { font-size: 12px; color: var(--ink); font-weight: 600; }
+  .seg .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-red); display: inline-block; margin-left: 5px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="window">
+  <header class="titlebar"></header>
+  <nav class="rail" data-active="intervals" aria-label="Screens"></nav>
+  <main class="content hist">
+    <div class="pagehead">
+      <div>
+        <h1>Intervals</h1>
+        <p class="sub">Time between clicks, from a release to the next press <span class="dotsep"></span> Left button <span class="dotsep"></span> 811 intervals from test 2</p>
+      </div>
+      <div class="actions">
+        <div class="seg" role="tablist" aria-label="Button">
+          <button class="on" role="tab" aria-selected="true">L<span class="dot"></span></button>
+          <button role="tab">R</button><button role="tab">M</button><button role="tab">X1</button><button role="tab">X2</button>
+        </div>
+        <button class="btn" type="button" data-icon="file">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="housing">
+        <div class="cap"><b>Interval histogram</b><span class="mono">log time · √ count · 20 bins per decade</span></div>
+        <canvas id="hist" aria-label="Histogram of time between clicks with two humps and the threshold in the gap"></canvas>
+        <div class="cap"><b>On your recording</b><span class="mono">Left · 10 ms / div · excerpt at 14:06:19</span></div>
+        <canvas id="prev" aria-label="Recording excerpt with ghost spikes struck out by the filter"></canvas>
+      </div>
+
+      <aside class="side">
+        <span class="caps">Suggested threshold · Left</span>
+        <div class="big"><b>38</b><span>ms</span></div>
+        <p class="learned">Learned from your fastest real double-click, <strong>94 ms</strong>. The threshold sits in the middle of the empty gap, so the filter never touches a real double-click or fast clicking in games.</p>
+        <ul class="derive">
+          <li><span>Slowest ghost (99th percentile)</span><span class="mono r">15.4 ms</span></li>
+          <li><span>Fastest real double-click</span><span class="mono">94 ms</span></li>
+          <li><span>Empty gap</span><span class="mono">15.4 to 94 ms</span></li>
+          <li class="total"><span>Threshold √(15.4 × 94)</span><span class="mono">38 ms</span></li>
+          <li><span>Margin on both sides</span><span class="mono">2.5 ×</span></li>
+        </ul>
+        <div class="filter-row">
+          <div class="txt"><b>Filter Left button</b><small id="fstate">Off · ghosts reach Windows</small></div>
+          <div class="toggle" id="ftoggle" role="switch" aria-checked="false" tabindex="0" aria-label="Filter Left button"></div>
+        </div>
+        <div class="btns">
+          <button class="btn btn-ink" type="button">Apply 38 ms</button>
+          <button class="btn" type="button">Set by hand</button>
+        </div>
+        <div class="others">
+          <span class="caps">Other buttons</span>
+          <ul>
+            <li><span class="pen blue">R</span><span>No ghosts in 301 clicks</span><span class="mono">30 ms</span></li>
+            <li><span class="pen">M</span><span>No ghosts in 71 clicks</span><span class="mono">off</span></li>
+            <li><span class="pen">X1</span><span>No ghosts in 12 clicks</span><span class="mono">off</span></li>
+            <li><span class="pen dim">X2</span><span>Not pressed yet</span><span class="mono">off</span></li>
+          </ul>
+        </div>
+        <p class="note">Learned from 47 double-clicks; 20 are enough. Adaptive mode keeps learning in the background and only moves the threshold inside the gap.</p>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const GC = window.GC;
+  const D = 7;          // loop length, s
+  const BINS = 20;      // bins per decade, from 1 ms to 1000 ms
+
+  // Sample session, Left button. Bin i covers 10^(i/20) .. 10^((i+1)/20) ms.
+  const GHOST = { 8: 1, 9: 1, 10: 1, 11: 1, 12: 2, 13: 2, 14: 3, 15: 3, 16: 4, 17: 5, 18: 4, 19: 3, 20: 3, 21: 2, 22: 1, 23: 1 };
+  const REAL = { 39: 1, 40: 3, 41: 6, 42: 9, 43: 11, 44: 10, 45: 7, 46: 8, 47: 15, 48: 27, 49: 46, 50: 66, 51: 88,
+    52: 100, 53: 95, 54: 80, 55: 65, 56: 50, 57: 36, 58: 26, 59: 16 };
+  const TH = 38, G99 = 15.4, FAST = 94;
+
+  let T, H, PV;
+  function setup() { T = GC.tok(); H = GC.canvas(document.getElementById('hist')); PV = GC.canvas(document.getElementById('prev')); }
+
+  // timeline
+  const grow = (t, i) => GC.easeOut(GC.seg(t, 0.3 + i * 0.022, 0.8 + i * 0.022));
+  const fadeOut = (t) => 1 - GC.easeInOut(GC.seg(t, 6.25, 6.9));
+  const filterOn = (t) => t >= 4.0 && t < 6.25;
+
+  function drawHist(t) {
+    const { ctx, w, h } = H;
+    const PERF = 18;
+    ctx.clearRect(0, 0, w, h);
+    GC.perf(ctx, 0, 0, w, PERF, { tok: T, line: 'bottom' });
+    GC.grid(ctx, 0, PERF, w, h - 2 * PERF, { tok: T, noVertical: true, originY: PERF });
+    GC.perf(ctx, 0, h - PERF, w, PERF, { tok: T, line: 'top' });
+
+    const x0 = 58, x1 = w - 26, y0 = PERF + 62, yb = h - PERF - 44;
+    const X = (ms) => x0 + (Math.log10(ms) / 3) * (x1 - x0);
+    const Y = (n) => yb - (Math.sqrt(n) / 10) * (yb - y0);
+
+    // semi-log vertical rulings (printed on the paper)
+    ctx.lineWidth = 1;
+    for (let dec = 0; dec < 3; dec++) for (let m = 1; m <= 9; m++) {
+      const v = Math.pow(10, dec) * m;
+      ctx.strokeStyle = m === 1 ? T.major : m === 5 ? '#c3e5cb' : T.minor;
+      const x = GC.snap(X(v)); ctx.beginPath(); ctx.moveTo(x, PERF); ctx.lineTo(x, h - PERF); ctx.stroke();
+    }
+    ctx.strokeStyle = T.major; ctx.beginPath(); ctx.moveTo(GC.snap(X(1000)), PERF); ctx.lineTo(GC.snap(X(1000)), h - PERF); ctx.stroke();
+    // baseline
+    ctx.strokeStyle = T.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x0 - 6, yb + 0.5); ctx.lineTo(x1 + 6, yb + 0.5); ctx.stroke();
+
+    // axis labels printed in grid green
+    ctx.fillStyle = T.label; ctx.font = '500 11px "SF Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].forEach((v) => ctx.fillText(v === 1000 ? '1 s' : String(v), X(v), yb + 8));
+    ctx.textAlign = 'right';
+    ctx.fillText('time between clicks, ms', x1, yb + 24);
+    ctx.textBaseline = 'middle';
+    [0, 1, 5, 10, 25, 50, 100].forEach((n) => {
+      ctx.fillText(String(n), x0 - 12, Y(n));
+      ctx.strokeStyle = T.label; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 - 7, GC.snap(Y(n))); ctx.lineTo(x0 - 3, GC.snap(Y(n))); ctx.stroke();
+    });
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('clicks per bin', 12, PERF + 10);
+
+    const fo = fadeOut(t);
+    const on = filterOn(t);
+    // gap shading
+    const pg = GC.seg(t, 2.9, 3.4) * fo;
+    if (pg > 0) {
+      ctx.save(); ctx.globalAlpha = pg;
+      const gx0 = X(G99) + 3, gx1 = X(FAST) - 3;
+      ctx.beginPath(); ctx.rect(gx0, y0 - 18, gx1 - gx0, yb - y0 + 18); ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(gx0, y0 - 18, gx1 - gx0, yb - y0 + 18);
+      ctx.strokeStyle = '#cfe8d6'; ctx.lineWidth = 1;
+      for (let k = -700; k < 400; k += 7) { ctx.beginPath(); ctx.moveTo(gx0 + k, yb); ctx.lineTo(gx0 + k + 600, yb - 600); ctx.stroke(); }
+      ctx.restore();
+      ctx.save(); ctx.globalAlpha = pg;
+      GC.label(ctx, 'empty gap', (X(G99) + X(TH)) / 2, yb - 40, { align: 'center', color: T.label, font: '600 11px "SF Mono"', bg: T.paper });
+      GC.label(ctx, '15.4 to 94 ms', (X(G99) + X(TH)) / 2, yb - 24, { align: 'center', color: T.label, font: '500 11px "SF Mono"', bg: T.paper });
+      ctx.restore();
+    }
+
+    // bars
+    for (let i = 0; i < 60; i++) {
+      const n = GHOST[i] || REAL[i]; if (!n) continue;
+      const k = grow(t, i) * fo; if (k <= 0) continue;
+      const bx0 = X(Math.pow(10, i / BINS)) + 2, bx1 = X(Math.pow(10, (i + 1) / BINS)) - 2;
+      const top = GC.lerp(yb, Y(n), k);
+      const ghost = !!GHOST[i];
+      if (ghost && on) {
+        const s = GC.easeOut(GC.seg(t, 4.1 + (i - 8) * 0.04, 4.35 + (i - 8) * 0.04));
+        ctx.fillStyle = T.redWash; ctx.fillRect(bx0, top, bx1 - bx0, yb - top);
+        ctx.strokeStyle = T.red; ctx.lineWidth = 1.2; ctx.strokeRect(bx0 + 0.6, top + 0.6, bx1 - bx0 - 1.2, yb - top - 0.6);
+        ctx.globalAlpha = 1 - s; ctx.fillStyle = T.red; ctx.fillRect(bx0, top, bx1 - bx0, yb - top); ctx.globalAlpha = 1;
+        if (s > 0) { // strike
+          ctx.strokeStyle = T.red; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+          const sx0 = bx0 - 3, sy0 = yb + 3, sx1 = bx1 + 3, sy1 = top - 5;
+          ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(GC.lerp(sx0, sx1, s), GC.lerp(sy0, sy1, s)); ctx.stroke();
+        }
+      } else {
+        ctx.fillStyle = ghost ? T.red : T.ink; ctx.fillRect(bx0, top, bx1 - bx0, yb - top);
+      }
+    }
+
+    // hump brackets
+    const pb = GC.seg(t, 1.9, 2.3) * fo;
+    if (pb > 0) {
+      ctx.save(); ctx.globalAlpha = pb;
+      bracket(ctx, X(2.6), X(16.5), Y(5) - 22, T.red);
+      GC.label(ctx, on ? 'ghost clicks · 37 filtered' : 'ghost clicks · 37', X(2.6) - 2, Y(5) - 38, { color: T.red, font: '600 12px "SF Mono"' });
+      bracket(ctx, X(89), x1, Y(100) - 16, T.ink);
+      GC.label(ctx, 'real clicks · 774', X(89) - 2, Y(100) - 32, { color: T.ink, font: '600 12px "SF Mono"' });
+      // fastest real double-click pointer
+      const fx = (X(89.1) + X(100)) / 2;
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 1.2; ctx.beginPath();
+      ctx.moveTo(fx, Y(1) - 6); ctx.lineTo(fx, Y(1) - 64); ctx.lineTo(fx - 10, Y(1) - 64); ctx.stroke();
+      GC.label(ctx, 'fastest real', fx - 13, Y(1) - 79, { align: 'right', color: T.ink2, font: '500 11px "SF Mono"', h: 15 });
+      GC.label(ctx, 'double-click', fx - 13, Y(1) - 64, { align: 'right', color: T.ink2, font: '500 11px "SF Mono"', h: 15 });
+      GC.label(ctx, '94 ms', fx - 13, Y(1) - 49, { align: 'right', color: T.ink, font: '700 11px "SF Mono"', h: 15 });
+      ctx.restore();
+    }
+
+    // threshold slides in from the right and settles in the gap
+    const ps = GC.seg(t, 2.25, 3.35);
+    if (ps > 0 && fo > 0) {
+      const lg = GC.lerp(Math.log10(600), Math.log10(TH), GC.backOut(ps));
+      const ms = Math.pow(10, lg), x = X(ms);
+      ctx.save(); ctx.globalAlpha = Math.min(1, ps * 4) * fo;
+      ctx.strokeStyle = T.ink; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(GC.snap(x), y0 - 26); ctx.lineTo(GC.snap(x), yb); ctx.stroke();
+      // handle
+      const txt = `${Math.round(ms)} ms`;
+      ctx.font = '700 12px "SF Mono"';
+      const tw = ctx.measureText(txt).width + 22;
+      roundRect(ctx, x - tw / 2, y0 - 50, tw, 24, 12); ctx.fillStyle = T.ink; ctx.fill();
+      ctx.fillStyle = T.paper; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x, y0 - 37.5);
+      ctx.restore();
+      const pc = GC.seg(t, 3.35, 3.7) * fo;
+      if (pc > 0) {
+        ctx.save(); ctx.globalAlpha = pc;
+        GC.label(ctx, 'threshold', x + 8, y0 + 4, { color: T.ink, font: '600 11px "SF Mono"', h: 15 });
+        GC.label(ctx, '√(15.4 × 94)', x + 8, y0 + 19, { color: T.ink2, font: '500 11px "SF Mono"', h: 15 });
+        ctx.restore();
+      }
+    }
+  }
+
+  function bracket(ctx, a, b, y, color) {
+    ctx.strokeStyle = color; ctx.lineWidth = 1.3; ctx.beginPath();
+    ctx.moveTo(a, y + 6); ctx.lineTo(a, y); ctx.lineTo(b, y); ctx.lineTo(b, y + 6); ctx.stroke();
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  // Recording excerpt at 10 ms/div: 1 px = 1 ms
+  const EX = [[20, 105], [111, 114, 6], [230, 318], [329, 332, 11], [440, 515], [598, 680], [700, 772], [775, 777, 3]];
+  function drawPrev(t) {
+    const { ctx, w, h } = PV;
+    const PERF = 16;
+    ctx.clearRect(0, 0, w, h);
+    GC.perf(ctx, 0, 0, w, PERF, { tok: T, r: 3.2, line: 'bottom' });
+    GC.grid(ctx, 0, PERF, w, h - 2 * PERF, { tok: T, originY: PERF, offset: 0 });
+    GC.perf(ctx, 0, h - PERF, w, PERF, { tok: T, r: 3.2, line: 'top' });
+    const ox = 34, hi = PERF + 46, lo = h - PERF - 26;
+    const on = filterOn(t);
+    const fo = fadeOut(t);
+    // L tag printed in the margin
+    ctx.font = '700 12px "SF Pro Rounded"'; ctx.fillStyle = T.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.strokeStyle = T.ink; ctx.lineWidth = 1.4; roundRect(ctx, 6, (hi + lo) / 2 - 10, 22, 20, 5); ctx.fillStyle = T.paper; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = T.ink; ctx.fillText('L', 17, (hi + lo) / 2 + 0.5);
+
+    ctx.lineWidth = 1.8; ctx.lineJoin = 'miter';
+    // real presses
+    ctx.strokeStyle = T.ink; ctx.beginPath(); ctx.moveTo(ox, lo);
+    EX.forEach(([d, u, g]) => {
+      if (g) return;
+      ctx.lineTo(ox + d, lo); ctx.lineTo(ox + d, hi); ctx.lineTo(ox + u, hi); ctx.lineTo(ox + u, lo);
+    });
+    ctx.lineTo(w, lo); ctx.stroke();
+    // ghost spikes
+    EX.forEach(([d, u, g], idx) => {
+      if (!g) return;
+      const s = on ? GC.easeOut(GC.seg(t, 4.2 + idx * 0.08, 4.5 + idx * 0.08)) : 0;
+      ctx.save(); ctx.globalAlpha = 1 - 0.78 * s;
+      ctx.strokeStyle = T.ink; ctx.beginPath(); ctx.moveTo(ox + d, lo); ctx.lineTo(ox + d, hi); ctx.lineTo(ox + u, hi); ctx.lineTo(ox + u, lo); ctx.stroke();
+      ctx.restore();
+      const cx = ox + (d + u) / 2, cy = (hi + lo) / 2;
+      const pc = GC.easeOut(GC.seg(t, 0.4 + idx * 0.1, 0.8 + idx * 0.1)) * fo;
+      GC.inkCircle(ctx, cx, cy, 11, 26, pc, 77 + idx, T.red, 1.8);
+      if (s > 0) {
+        ctx.strokeStyle = T.red; ctx.lineWidth = 2; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(cx - 16, cy + 30); ctx.lineTo(GC.lerp(cx - 16, cx + 16, s), GC.lerp(cy + 30, cy - 30, s)); ctx.stroke();
+      }
+      ctx.save(); ctx.globalAlpha = pc;
+      const last = idx === EX.length - 1;
+      GC.label(ctx, s > 0.5 ? `${g} ms · filtered` : `${g} ms, ghost`, last ? cx - 14 : cx + 14, hi - 14,
+        { align: last ? 'right' : 'left', color: T.red, font: '600 11px "SF Mono"', h: 15 });
+      ctx.restore();
+    });
+    // real double-click stays
+    const pk = GC.seg(t, 4.5, 4.9) * fo;
+    const dx0 = ox + 515, dx1 = ox + 598;
+    ctx.save(); ctx.globalAlpha = 0.35 + 0.65 * pk;
+    ctx.strokeStyle = T.green; ctx.lineWidth = 1.2; ctx.beginPath();
+    ctx.moveTo(dx0, lo + 9); ctx.lineTo(dx0, lo + 13); ctx.lineTo(dx1, lo + 13); ctx.lineTo(dx1, lo + 9); ctx.stroke();
+    GC.label(ctx, pk > 0.5 ? 'real double-click, 83 ms gap · kept' : 'real double-click, 83 ms gap', dx0, lo + 13, { color: T.green, font: '600 11px "SF Mono"', h: 15 });
+    ctx.restore();
+  }
+
+  const tog = document.getElementById('ftoggle');
+  const fs = document.getElementById('fstate');
+  function render(t) {
+    if (!H) setup();
+    drawHist(t);
+    drawPrev(t);
+    const on = filterOn(t);
+    tog.classList.toggle('on', on); tog.setAttribute('aria-checked', String(on));
+    fs.textContent = on ? 'On · 37 of 37 ghosts removed' : 'Off · ghosts reach Windows';
+    fs.classList.toggle('on', on);
+  }
+  setup();
+  GC.demo(render, D, 5.6);
+  window.addEventListener('resize', () => { setup(); render(window.__demo.still); });
+})();
+</script>
+</body>
+</html>

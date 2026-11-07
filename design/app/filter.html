@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostClick Filter</title>
+<link rel="stylesheet" href="../assets/apple-fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .flt { display: flex; flex-direction: column; }
+  .body { flex: 1; display: grid; grid-template-columns: 1fr 412px; gap: 32px; padding: 18px 32px 22px; min-height: 0; }
+  .col { display: flex; flex-direction: column; min-width: 0; }
+
+  .swin { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; margin-right: 8px; }
+
+  /* Weekly counter: number on the panel, days on a strip of chart paper */
+  .week { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: stretch; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .week .num b { display: block; font-size: var(--t-hero); font-weight: 500; letter-spacing: -.03em; line-height: 1; margin-top: 8px; }
+  .week .num p { margin-top: 8px; font-size: 16px; font-weight: 600; }
+  .week .num small { display: block; margin-top: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .week .num small .r { color: var(--ink-red); }
+  .daystrip { background: var(--graphite-900); border-radius: 12px; padding: 10px 12px; display: flex; min-width: 0; }
+  #days { width: 100%; height: 150px; display: block; }
+
+  /* Per-button table */
+  .tbl { margin-top: 18px; }
+  .tbl .head, .tbl .row {
+    display: grid; grid-template-columns: 168px 62px 136px 104px 132px 1fr; align-items: center; gap: 12px;
+  }
+  .tbl .head { padding: 0 0 8px; border-bottom: 1px solid var(--rule); }
+  .tbl .row { height: 62px; border-bottom: 1px solid var(--rule); }
+  .tbl .stepper { justify-self: start; }
+  .tbl .row.off .stepper, .tbl .row.off .lbl-check, .tbl .row.off .hold { opacity: .42; }
+  .btn-name { display: flex; align-items: center; gap: 10px; }
+  .btn-name b { display: block; font-size: 14px; font-weight: 600; }
+  .btn-name small { display: block; font-size: 12px; color: var(--ink-3); }
+  .btn-name small.r { color: var(--ink-red); }
+  .lbl-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+  .hold { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .hold .mono { font-size: 12px; font-weight: 600; }
+  .wk { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .wk .mono { font-size: 14px; font-weight: 600; min-width: 48px; text-align: right; }
+  .wk .mono.r { color: var(--ink-red); }
+  .wk .mono.z { color: var(--ink-3); font-weight: 400; }
+  .wk svg { width: 64px; height: 22px; }
+
+  .rules { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .rule { display: flex; flex-direction: column; gap: 8px; }
+  .rule svg { width: 100%; max-width: 300px; height: 70px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--rule); border-radius: 2px;
+    background-image: linear-gradient(to right, var(--grid-minor) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px); background-size: 10px 10px; }
+  .rule b { font-size: 14px; font-weight: 600; }
+  .rule p { margin-top: 3px; font-size: 13px; color: var(--ink-2); line-height: 1.45; max-width: 46ch; }
+  .hookline { margin-top: auto; padding-top: 14px; display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+  .hookline b { color: var(--ink); font-weight: 600; }
+  .hookline .ok { color: var(--ink-green); }
+
+  /* Exclusions */
+  .exh { display: flex; align-items: center; justify-content: space-between; }
+  .exp { margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+  .exlist { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+  .exlist li { display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; align-items: center; height: 50px; border-bottom: 1px solid var(--rule); }
+  .appico { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--rule-strong); background: var(--paper); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+  .exlist .mono { font-size: 13px; font-weight: 600; display: block; }
+  .exlist small { display: block; font-size: 12px; color: var(--ink-3); }
+  .exlist button { width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
+  .exlist button:hover { background: var(--paper-sunk); color: var(--ink); }
+  .exlist button svg { width: 14px; height: 14px; }
+
+  /* Tray preview: a corner of the Windows 11 desktop */
+  .traycap { margin-top: 22px; display: flex; align-items: baseline; justify-content: space-between; }
+  .desk {
+    position: relative; margin-top: 10px; flex: 1; min-height: 0; border-radius: 12px; overflow: hidden;
+    background: linear-gradient(160deg, #cfd6d2 0%, #b9c3be 55%, #a9b4ae 100%);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06);
+    font-family: "SF Pro Text", "SF Pro", sans-serif;
+  }
+  .taskbar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 44px;
+    background: rgba(243, 243, 243, .94); border-top: 1px solid rgba(0, 0, 0, .08);
+    display: flex; align-items: center; justify-content: flex-end; gap: 2px; padding: 0 8px;
+  }
+  .tb-i { height: 34px; min-width: 30px; padding: 0 7px; border-radius: 5px; display: grid; place-items: center; color: #1b1b1b; }
+  .tb-i svg { width: 16px; height: 16px; }
+  .tb-i.hot { background: rgba(0, 0, 0, .06); }
+  .tb-sys { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 9px; border-radius: 5px; }
+  .tb-sys svg { width: 15px; height: 15px; color: #1b1b1b; }
+  .tb-clock { text-align: right; font-size: 11.5px; line-height: 1.3; color: #1b1b1b; padding: 0 8px; }
+  .flyout {
+    position: absolute; right: 52px; bottom: 54px; width: 300px;
+    background: #f9f9f9; border: 1px solid rgba(0, 0, 0, .1); border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .08);
+    font-family: var(--font-ui); overflow: hidden;
+  }
+  .fo-top { padding: 14px 16px 12px; }
+  .fo-h { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+  .fo-h .chip { margin-left: auto; height: 22px; font-size: 11px; }
+  .fo-num { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; }
+  .fo-num b { font-size: 34px; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+  .fo-num span { font-size: 12px; color: var(--ink-2); line-height: 1.25; }
+  .fo-rows { border-top: 1px solid #e6e6e6; }
+  .fo-row { display: grid; grid-template-columns: 30px 1fr auto 44px; gap: 8px; align-items: center; height: 40px; padding: 0 16px; border-bottom: 1px solid #ececec; font-size: 13px; }
+  .fo-row .mono { font-size: 12px; color: var(--ink-2); }
+  .fo-row .pen { min-width: 24px; height: 20px; font-size: 10px; }
+  .fo-row .toggle { width: 36px; height: 20px; }
+  .fo-row .toggle::after { width: 11px; height: 11px; }
+  .fo-row .toggle.on::after { transform: translateX(16px); }
+  .fo-foot { display: flex; gap: 8px; padding: 12px 16px; background: #f3f3f3; }
+  .fo-foot .btn { height: 30px; font-size: 12px; flex: 1; justify-content: center; padding: 0 10px; }
+</style>
+</head>
+<body>
+<div class="window">
+  <header class="titlebar"></header>
+  <nav class="rail" data-active="filter" aria-label="Screens"></nav>
+  <main class="content flt">
+    <div class="pagehead">
+      <div>
+        <h1>Filter</h1>
+        <p class="sub">System-wide ghost click filter, runs from the tray <span class="dotsep"></span> low-level mouse hook <span class="dotsep"></span> on since 08:41</p>
+      </div>
+      <div class="actions">
+        <span class="swin">Starts with Windows <span class="toggle on" role="switch" aria-checked="true" tabindex="0"></span></span>
+        <button class="btn" type="button" data-icon="pause">Pause 15 min</button>
+        <span class="chip green"><i></i>Filtering</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="col">
+        <section class="week" aria-label="This week">
+          <div class="num">
+            <span class="caps">This week</span>
+            <b>1,284</b>
+            <p>ghost clicks filtered</p>
+            <small>Left <span class="r">1,251</span> · Right 33 · since Sun 1 Nov</small>
+          </div>
+          <div class="daystrip"><canvas id="days" aria-label="Ghost clicks filtered per day"></canvas></div>
+        </section>
+
+        <section class="tbl" aria-label="Per-button debounce">
+          <div class="head caps">
+            <span>Button</span><span>Filter</span><span>Threshold</span><span>Adaptive</span><span>Hold protection</span><span style="text-align:right">Filtered this week</span>
+          </div>
+          <div class="row">
+            <div class="btn-name"><span class="pen red">L</span><div><b>Left</b><small class="r">chatters · 3.1 %</small></div></div>
+            <span class="toggle on" role="switch" aria-checked="true" tabindex="0" aria-label="Filter Left"></span>
+            <div class="stepper"><button aria-label="Lower">${minus}</button><span class="val">38<small>ms</small></span><button aria-label="Raise">${plus}</button></div>
+            <span class="lbl-check"><span class="check on">${check}</span>learned</span>
+            <span class="hold"><span class="toggle on" role="switch" aria-checked="true" tabindex="0" aria-label="Hold protection Left"></span><span class="mono">12 ms</span></span>
+            <div class="wk"><svg data-bars="160,150,182,166,198,229,166" data-red="1"></svg><span class="mono r">1,251</span></div>
+          </div>
+          <div class="row">
+            <div class="btn-name"><span class="pen blue">R</span><div><b>Right</b><small>clean · on as a precaution</small></div></div>
+            <span class="toggle on" role="switch" aria-checked="true" tabindex="0" aria-label="Filter Right"></span>
+            <div class="stepper"><button aria-label="Lower">${minus}</button><span class="val">30<small>ms</small></span><button aria-label="Raise">${plus}</button></div>
+            <span class="lbl-check"><span class="check">${check}</span>fixed</span>
+            <span class="hold"><span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Hold protection Right"></span><span class="mono" style="color:var(--ink-3)">off</span></span>
+            <div class="wk"><svg data-bars="2,4,3,6,5,8,5"></svg><span class="mono">33</span></div>
+          </div>
+          <div class="row off">
+            <div class="btn-name"><span class="pen">M</span><div><b>Middle</b><small>clean</small></div></div>
+            <span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Filter Middle"></span>
+            <div class="stepper"><button aria-label="Lower">${minus}</button><span class="val">30<small>ms</small></span><button aria-label="Raise">${plus}</button></div>
+            <span class="lbl-check"><span class="check">${check}</span>fixed</span>
+            <span class="hold"><span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Hold protection Middle"></span><span class="mono" style="color:var(--ink-3)">off</span></span>
+            <div class="wk"><svg data-bars="0,0,0,0,0,0,0"></svg><span class="mono z">0</span></div>
+          </div>
+          <div class="row off">
+            <div class="btn-name"><span class="pen">X1</span><div><b>Back</b><small>clean</small></div></div>
+            <span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Filter Back"></span>
+            <div class="stepper"><button aria-label="Lower">${minus}</button><span class="val">30<small>ms</small></span><button aria-label="Raise">${plus}</button></div>
+            <span class="lbl-check"><span class="check">${check}</span>fixed</span>
+            <span class="hold"><span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Hold protection Back"></span><span class="mono" style="color:var(--ink-3)">off</span></span>
+            <div class="wk"><svg data-bars="0,0,0,0,0,0,0"></svg><span class="mono z">0</span></div>
+          </div>
+          <div class="row off">
+            <div class="btn-name"><span class="pen dim">X2</span><div><b>Forward</b><small>not tested yet</small></div></div>
+            <span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Filter Forward"></span>
+            <div class="stepper"><button aria-label="Lower">${minus}</button><span class="val">30<small>ms</small></span><button aria-label="Raise">${plus}</button></div>
+            <span class="lbl-check"><span class="check">${check}</span>fixed</span>
+            <span class="hold"><span class="toggle" role="switch" aria-checked="false" tabindex="0" aria-label="Hold protection Forward"></span><span class="mono" style="color:var(--ink-3)">off</span></span>
+            <div class="wk"><svg data-bars="0,0,0,0,0,0,0"></svg><span class="mono z">0</span></div>
+          </div>
+        </section>
+
+        <section class="rules" aria-label="How the filter decides">
+          <div class="rule">
+            <svg viewBox="0 0 220 70" aria-hidden="true">
+              <path d="M4 56h30V18h62v38h6" fill="none" stroke="#15171a" stroke-width="1.8"/>
+              <path d="M102 56V18h3v38" fill="none" stroke="#d3261d" stroke-width="1.8" opacity=".9"/>
+              <path d="M95 64l18-52" stroke="#d3261d" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M105 56h111" fill="none" stroke="#15171a" stroke-width="1.8"/>
+              <path d="M96 8v6M96 11h42M138 8v6" stroke="#4f8c60" stroke-width="1.2"/>
+              <text x="142" y="15" font-family="SF Mono" font-size="10" fill="#4f8c60">38 ms</text>
+            </svg>
+            <div><b>Block repeat presses</b><p>A press that lands less than the threshold after a release is dropped, together with its release. No delay is added to anything.</p></div>
+          </div>
+          <div class="rule">
+            <svg viewBox="0 0 220 70" aria-hidden="true">
+              <path d="M4 56h24V18h80" fill="none" stroke="#15171a" stroke-width="1.8"/>
+              <path d="M108 18v38h3V18" fill="none" stroke="#d3261d" stroke-width="1.8" opacity=".9"/>
+              <path d="M101 64l18-52" stroke="#d3261d" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M111 18h80v38h25" fill="none" stroke="#15171a" stroke-width="1.8"/>
+              <path d="M107 8v6M107 11h20M127 8v6" stroke="#4f8c60" stroke-width="1.2"/>
+              <text x="131" y="15" font-family="SF Mono" font-size="10" fill="#4f8c60">12 ms</text>
+            </svg>
+            <div><b>Hold protection</b><p>A release followed by a press within 12 ms is swallowed, so a held button and a drag keep going. Releases wait up to 12 ms.</p></div>
+          </div>
+        </section>
+
+        <div class="hookline">
+          <span>hook <b>WH_MOUSE_LL</b> <span class="ok">installed</span></span>
+          <span>median cost <b>0.02 ms</b> per event</span>
+          <span>events seen today <b>48,906</b></span>
+          <span>hook timeouts <b>0</b></span>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="exh"><h2 class="panel-title">Exclusions</h2><button class="btn btn-sm" type="button" data-icon="plus">Add app</button></div>
+        <p class="exp">The filter steps aside while one of these apps is in the foreground.</p>
+        <ul class="exlist">
+          <li><span class="appico">o!</span><div><span class="mono">osu!.exe</span><small>you tap faster than 38 ms in streams</small></div><button aria-label="Remove osu!.exe">${x}</button></li>
+          <li><span class="appico">AH</span><div><span class="mono">AutoHotkey64.exe</span><small>scripted clicks arrive in bursts</small></div><button aria-label="Remove AutoHotkey64.exe">${x}</button></li>
+          <li><span class="appico">Ps</span><div><span class="mono">Photoshop.exe</span><small>pen tablet taps arrive close together</small></div><button aria-label="Remove Photoshop.exe">${x}</button></li>
+          <li><span class="appico">RD</span><div><span class="mono">mstsc.exe</span><small>the remote PC filters its own mouse</small></div><button aria-label="Remove mstsc.exe">${x}</button></li>
+        </ul>
+
+        <div class="traycap"><h2 class="panel-title">In the tray</h2><span class="caps">Preview</span></div>
+        <div class="desk" aria-label="Tray flyout preview">
+          <div class="flyout">
+            <div class="fo-top">
+              <div class="fo-h"><span class="appglyph"></span>GhostClick<span class="chip green"><i></i>Filtering</span></div>
+              <div class="fo-num"><b>1,284</b><span>ghost clicks filtered<br>this week</span></div>
+            </div>
+            <div class="fo-rows">
+              <div class="fo-row"><span class="pen red">L</span><span>Left</span><span class="mono">38 ms</span><span class="toggle on"></span></div>
+              <div class="fo-row"><span class="pen blue">R</span><span>Right</span><span class="mono">30 ms</span><span class="toggle on"></span></div>
+              <div class="fo-row"><span class="pen">M</span><span>Middle</span><span class="mono">off</span><span class="toggle"></span></div>
+            </div>
+            <div class="fo-foot"><button class="btn" type="button">Pause 15 min</button><button class="btn btn-ink" type="button">Open recorder</button></div>
+          </div>
+          <div class="taskbar">
+            <span class="tb-i"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg></span>
+            <span class="tb-i hot" title="GhostClick"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M1.5 11.5h2.2V4.5h4.6v7h1.4"/><path d="M10.6 11.5V5" stroke="#d3261d"/><path d="M11.8 11.5h2.7"/></svg></span>
+            <span class="tb-sys">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1.5 6a9.5 9.5 0 0 1 13 0M3.7 8.4a6.4 6.4 0 0 1 8.6 0M6 10.8a3 3 0 0 1 4 0"/><circle cx="8" cy="13" r=".6" fill="currentColor"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"><path d="M2 6h2.5L8 3v10L4.5 10H2z"/><path d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.4 3.8a6 6 0 0 1 0 8.4"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="5" width="11.5" height="6.5" rx="1.3"/><path d="M14.5 7v2.5" stroke-linecap="round"/><rect x="3" y="6.5" width="6.5" height="3.5" rx=".5" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span class="tb-clock">2:32 PM<br>11/7/2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const GC = window.GC;
+  // inline icons
+  document.querySelectorAll('.stepper button').forEach((b, i) => { b.innerHTML = i % 2 ? GC.ICON.plus : GC.ICON.minus; });
+  document.querySelectorAll('.check').forEach((c) => { c.innerHTML = GC.ICON.check; });
+  document.querySelectorAll('.exlist button').forEach((b) => { b.innerHTML = GC.ICON.x; });
+  document.querySelectorAll('.appglyph').forEach((s) => { s.innerHTML = GC.APP_GLYPH.replace('fill="#ffffff"', 'fill="#15171a"').replace('stroke="#15171a" stroke-width="1.4" stroke-linejoin', 'stroke="#ffffff" stroke-width="1.4" stroke-linejoin').replace('M11.7 11.2h1.9" fill="none" stroke="#15171a"', 'M11.7 11.2h1.9" fill="none" stroke="#ffffff"'); });
+
+  // seven-day sparkbars per button
+  document.querySelectorAll('.wk svg').forEach((svg) => {
+    const v = svg.dataset.bars.split(',').map(Number);
+    const max = Math.max(...v, 1), red = svg.dataset.red;
+    svg.setAttribute('viewBox', '0 0 64 22');
+    svg.innerHTML = '<path d="M0 21.5h64" stroke="#d8dcd8" stroke-width="1"/>' + v.map((n, i) => {
+      const h = n ? Math.max(2, (n / max) * 19) : 0;
+      return h ? `<rect x="${i * 9 + 1}" y="${21 - h}" width="5" height="${h}" fill="${red ? '#d3261d' : '#15171a'}"/>` : '';
+    }).join('');
+  });
+
+  // per-day strip on chart paper
+  const DAYS = [['Sun', 1, 124], ['Mon', 2, 162], ['Tue', 3, 188], ['Wed', 4, 171], ['Thu', 5, 205], ['Fri', 6, 236], ['Sat', 7, 198]];
+  function render() {
+    const T = GC.tok();
+    const { ctx, w, h } = GC.canvas(document.getElementById('days'));
+    const PERF = 14;
+    GC.perf(ctx, 0, 0, w, PERF, { tok: T, r: 2.8, pitch: 16, line: 'bottom' });
+    GC.grid(ctx, 0, PERF, w, h - 2 * PERF, { tok: T, originY: PERF });
+    GC.perf(ctx, 0, h - PERF, w, PERF, { tok: T, r: 2.8, pitch: 16, line: 'top' });
+    const x0 = 16, x1 = w - 16, yb = h - PERF - 26, top = PERF + 24;
+    const step = (x1 - x0) / 7, bw = Math.min(46, step * 0.5);
+    ctx.strokeStyle = T.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(x0, yb + 0.5); ctx.lineTo(x1, yb + 0.5); ctx.stroke();
+    DAYS.forEach(([d, n, v], i) => {
+      const cx = x0 + step * (i + 0.5);
+      const bh = (v / 250) * (yb - top);
+      const today = i === 6;
+      ctx.fillStyle = today ? T.red : T.ink;
+      ctx.fillRect(cx - bw / 2, yb - bh, bw, bh);
+      ctx.font = '600 11px "SF Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillStyle = today ? T.red : T.ink; ctx.fillText(String(v), cx, yb - bh - 4);
+      ctx.font = '500 11px "SF Mono"'; ctx.textBaseline = 'top'; ctx.fillStyle = T.label;
+      ctx.fillText(today ? 'today' : `${d} ${n}`, cx, yb + 6);
+    });
+  }
+  GC.fontsReady().then(render);
+  window.__demo = { duration: 1, still: 0, seek: () => render() };
+})();
+</script>
+</body>
+</html>

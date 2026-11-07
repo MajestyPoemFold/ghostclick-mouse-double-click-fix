@@ -1,0 +1,50 @@
+/*
+ * Apple fonts for the design files and the README media renderer.
+ *
+ * The font files are NOT part of this repository: Apple's font license does not
+ * allow redistribution. Download them from https://developer.apple.com/fonts/
+ * (SF Pro, SF Mono, New York) and copy these files into ./fonts/ next to this file:
+ *   SF-Pro.ttf, SF-Pro-Italic.ttf                         (variable: wght 1-1000, wdth 30-150, opsz)
+ *   SF-Pro-Rounded-{Ultralight..Black}.otf
+ *   SF-Mono-{Light..Heavy}[Italic].otf
+ *   NewYork.ttf, NewYorkItalic.ttf                        (variable: wght 400-1000, opsz)
+ *
+ * Families exposed:
+ *   "SF Pro", "SF Pro Display", "SF Pro Text"   one variable face; optical size follows font-size,
+ *                                               width via font-stretch (30% compressed ... 150% expanded)
+ *   "SF Pro Rounded", "SF Mono", "New York"
+ */
+@font-face { font-family: "SF Pro";         src: url("fonts/SF-Pro.ttf") format("truetype");        font-weight: 1 1000; font-stretch: 30% 150%; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Pro";         src: url("fonts/SF-Pro-Italic.ttf") format("truetype"); font-weight: 1 1000; font-stretch: 30% 150%; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Pro Display"; src: url("fonts/SF-Pro.ttf") format("truetype");        font-weight: 1 1000; font-stretch: 30% 150%; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Pro Display"; src: url("fonts/SF-Pro-Italic.ttf") format("truetype"); font-weight: 1 1000; font-stretch: 30% 150%; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Pro Text";    src: url("fonts/SF-Pro.ttf") format("truetype");        font-weight: 1 1000; font-stretch: 30% 150%; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Pro Text";    src: url("fonts/SF-Pro-Italic.ttf") format("truetype"); font-weight: 1 1000; font-stretch: 30% 150%; font-style: italic; font-display: block; }
+
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Ultralight.otf") format("opentype"); font-weight: 100; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Thin.otf") format("opentype");       font-weight: 200; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Light.otf") format("opentype");      font-weight: 300; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Regular.otf") format("opentype");    font-weight: 400; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Medium.otf") format("opentype");     font-weight: 500; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Semibold.otf") format("opentype");   font-weight: 600; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Bold.otf") format("opentype");       font-weight: 700; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Heavy.otf") format("opentype");      font-weight: 800; font-display: block; }
+@font-face { font-family: "SF Pro Rounded"; src: url("fonts/SF-Pro-Rounded-Black.otf") format("opentype");      font-weight: 900; font-display: block; }
+
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Light.otf") format("opentype");          font-weight: 300; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-LightItalic.otf") format("opentype");    font-weight: 300; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Regular.otf") format("opentype");        font-weight: 400; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-RegularItalic.otf") format("opentype");  font-weight: 400; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Medium.otf") format("opentype");         font-weight: 500; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-MediumItalic.otf") format("opentype");   font-weight: 500; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Semibold.otf") format("opentype");       font-weight: 600; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-SemiboldItalic.otf") format("opentype"); font-weight: 600; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Bold.otf") format("opentype");           font-weight: 700; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-BoldItalic.otf") format("opentype");     font-weight: 700; font-style: italic; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-Heavy.otf") format("opentype");          font-weight: 800; font-style: normal; font-display: block; }
+@font-face { font-family: "SF Mono"; src: url("fonts/SF-Mono-HeavyItalic.otf") format("opentype");    font-weight: 800; font-style: italic; font-display: block; }
+
+@font-face { font-family: "New York"; src: url("fonts/NewYork.ttf") format("truetype");       font-weight: 400 1000; font-style: normal; font-display: block; }
+@font-face { font-family: "New York"; src: url("fonts/NewYorkItalic.ttf") format("truetype"); font-weight: 400 1000; font-style: italic; font-display: block; }
+
+html { font-optical-sizing: auto; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
